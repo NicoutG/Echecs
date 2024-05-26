@@ -74,9 +74,9 @@ public class Plateau extends Observable {
                     pionSelec=getPion(nb);
                     if (pionSelec==null || pionSelec.couleur!=tour)
                         return false;
+                    depPossibles=pionSelec.getDepPossibles(pions,echequier,caseSelec,caseDep);
                     caseSelec=nb;
                     ordre=1;
-                    depPossibles=pionSelec.getDepPossibles(pions,echequier);
                 }
                 else {
                     switch (nb) {
@@ -138,6 +138,23 @@ public class Plateau extends Observable {
             if (pionMange!=null)
                 pions.remove(pionMange);
         }
+
+        // prise en passant
+        if (pion.type=='p' && echequier[caseDep%8][caseDep/8]==0) {
+            if (pion.couleur && echequier[caseDep%8][caseDep/8+1]==7) {
+                echequier[caseDep%8][caseDep/8+1]=0;
+                Pion pionMange=getPion(pos+8);
+                if (pionMange!=null)
+                    pions.remove(pionMange);
+            }
+            if (!pion.couleur && echequier[caseDep%8][caseDep/8-1]==1) {
+                echequier[caseDep%8][caseDep/8-1]=0;
+                Pion pionMange=getPion(pos-8);
+                if (pionMange!=null)
+                    pions.remove(pionMange);
+            }
+        }
+
         pion.deplacer=true;
         pion.position=pos;
         echequier[caseDep%8][caseDep/8]=echequier[caseSelec%8][caseSelec/8];
@@ -200,7 +217,7 @@ public class Plateau extends Observable {
         for (int i=0;i<pis.size();i++) {
             pion=pis.get(i);
             if (pion.couleur==!joueur)
-                if (pion.getDepPossibles(pis,echeq).size()!=0)
+                if (pion.getDepPossibles(pis,echeq,caseSelec,caseDep).size()!=0)
                     return false;
         }
         return true;

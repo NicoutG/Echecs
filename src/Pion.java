@@ -13,9 +13,9 @@ public class Pion {
         deplacer=false;
     }
 
-    public Vector <Integer> getDepPossibles (Vector <Pion> pions, int [][] echequier) {
+    public Vector <Integer> getDepPossibles (Vector <Pion> pions, int [][] echequier, int posPrec, int depPrec) {
         switch (type) {
-            case 'p': return depPion(pions,echequier);
+            case 'p': return depPion(pions,echequier,posPrec,depPrec);
             case 'c': return depCavalier(pions,echequier);
             case 'f': return depFou(pions,echequier);
             case 't': return depTour(pions,echequier);
@@ -32,7 +32,7 @@ public class Pion {
         return null;
     }
 
-    private Vector <Integer> depPion (Vector <Pion> pions, int [][] echequier) {
+    private Vector <Integer> depPion (Vector <Pion> pions, int [][] echequier, int posPrec, int depPrec) {
         Vector <Integer> res=new Vector <Integer> ();
         int x=position%8;
         int depPrendreG;
@@ -70,6 +70,26 @@ public class Pion {
                     addDep(pions,echequier,depPrendreD,res);
             }
         }
+
+        // prise en passant
+        int yDepPrec=depPrec/8;
+        int yPosPrec=posPrec/8;
+        if (Math.abs(yPosPrec-yDepPrec)==2) {
+            int xDepPrec=depPrec%8;
+            if (couleur && 24<=position && position<32 && echequier[xDepPrec][yDepPrec]==7) {
+                if (xDepPrec==x-1)
+                    addDep(pions, echequier, position-9, res);
+                if (xDepPrec==x+1)
+                    addDep(pions, echequier, position-7, res);
+            }
+            if (!couleur && 32<=position && position<40 && echequier[xDepPrec][yDepPrec]==1) {
+                if (xDepPrec==x-1)
+                    addDep(pions, echequier, position+7, res);
+                if (xDepPrec==x+1)
+                    addDep(pions, echequier, position+9, res);
+            }
+        }
+
         return res;
     }
 
@@ -348,6 +368,15 @@ public class Pion {
         for (int i=0;i<8;i++)
             for (int j=0;j<8;j++)
                 echequierDep[i][j]=echequier[i][j];
+        
+        // prise en passant
+        if (type=='p' && echequierDep[dep%8][dep/8]==0) {
+            if (couleur && echequierDep[dep%8][dep/8+1]==7)
+                echequierDep[dep%8][dep/8+1]=0;
+            if (!couleur && echequierDep[dep%8][dep/8-1]==1)
+                echequierDep[dep%8][dep/8-1]=0;
+        }
+
         echequierDep[dep%8][dep/8]=echequier[position%8][position/8];
         echequierDep[position%8][position/8]=0;
         return !echec(pions, echequierDep, couleur);
@@ -462,7 +491,7 @@ public class Pion {
             val=echequier[xdep][ydep];
             if (val!=0)
                 bloque=true;
-            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5)))
+            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5))) 
                 return true;
             ydep--;
             xdep--;
@@ -474,7 +503,7 @@ public class Pion {
             val=echequier[xdep][ydep];
             if (val!=0)
                 bloque=true;
-            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5)))
+            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5))) 
                 return true;
             ydep--;
             xdep++;
@@ -486,10 +515,10 @@ public class Pion {
             val=echequier[xdep][ydep];
             if (val!=0)
                 bloque=true;
-            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5)))
+            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5))) 
                 return true;
             ydep++;
-            ydep++;
+            xdep++;
         }
         bloque=false;
         xdep=x-1;
@@ -498,12 +527,11 @@ public class Pion {
             val=echequier[xdep][ydep];
             if (val!=0)
                 bloque=true;
-            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5)))
+            if ((couleurRoi && (val==9 || val==11)) || (!couleurRoi && (val==3 || val==5))) 
                 return true;
             ydep++;
             xdep--;
         }
-
         return false;
     }
 
