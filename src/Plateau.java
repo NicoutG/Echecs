@@ -17,12 +17,14 @@ public class Plateau extends Observable {
     private final int valFou=30;
     private final int valTour=50;
     private final int valReine=90;
+    private final int valRoi=100;
     private final int valDepPion=2;
     private final int valDepCavalier=3;
     private final int valDepFou=1;
     private final int valDepTour=1;
     private final int valDepReine=1;
     private final int valDepRoi=5;
+    private final double coefPrise=0.5;
 
     public Plateau () {
         pions=new Vector <Pion> ();
@@ -68,39 +70,44 @@ public class Plateau extends Observable {
             depPossibles.add(pions.get(i).getDepPossibles(pions,echequier,caseSelec,caseDep));
         
         // verfication de la victoire
-        if (echecEtMat(pions,echequier,tour)) {
-            if (tour)
-                victoire=1;
-            else
-                victoire=2;
-        }
+        victoire=echecEtMat(pions,echequier);
 
         ordre=0;
         tour=tourSuivant;
     }
 
-    public int evaluation () {
+    private int evaluationPion (int nb) {
         int res=0;
-        for (int i=0;i<pions.size();i++) {
-            if (pions.get(i).couleur)
-                switch (pions.get(i).type) {
-                    case 'p': res+=valPion+depPossibles.get(i).size()*valDepPion;break;
-                    case 'c': res+=valCavalier+depPossibles.get(i).size()*valDepCavalier;break;
-                    case 'f': res+=valFou+depPossibles.get(i).size()*valDepFou;break;
-                    case 't': res+=valTour+depPossibles.get(i).size()*valDepTour;break;
-                    case 'q': res+=valReine+depPossibles.get(i).size()*valDepReine;break;
-                    case 'k': res+=depPossibles.get(i).size()*valDepRoi;break;
-                }
-            else 
-                switch (pions.get(i).type) {
-                    case 'p': res-=valPion+depPossibles.get(i).size()*valDepPion;break;
-                    case 'c': res-=valCavalier+depPossibles.get(i).size()*valDepCavalier;break;
-                    case 'f': res-=valFou+depPossibles.get(i).size()*valDepFou;break;
-                    case 't': res-=valTour+depPossibles.get(i).size()*valDepTour;break;
-                    case 'q': res-=valReine+depPossibles.get(i).size()*valDepReine;break;
-                    case 'k': res-=depPossibles.get(i).size()*valDepRoi;break;
+        Vector <Integer> depPossiblesPion=depPossibles.get(nb);
+        switch (pions.get(nb).type) {
+            case 'p': res+=valPion+depPossiblesPion.size()*valDepPion;break;
+            case 'c': res+=valCavalier+depPossiblesPion.size()*valDepCavalier;break;
+            case 'f': res+=valFou+depPossiblesPion.size()*valDepFou;break;
+            case 't': res+=valTour+depPossiblesPion.size()*valDepTour;break;
+            case 'q': res+=valReine+depPossiblesPion.size()*valDepReine;break;
+            case 'k': res+=depPossiblesPion.size()*valDepRoi;break;
+        }
+        for (int i=0;i<depPossiblesPion.size();i++) {
+            int val=echequier[depPossiblesPion.get(i)%8][depPossiblesPion.get(i)/8];
+            if (val!=0)
+                switch ((val-1)%6) {
+                    case 0:res+=coefPrise*valPion;break;
+                    case 1:res+=coefPrise*valCavalier;break;
+                    case 2:res+=coefPrise*valFou;break;
+                    case 3:res+=coefPrise*valTour;break;
+                    case 4:res+=coefPrise*valReine;break;
+                    case 5:res+=coefPrise*valRoi;break;
                 }
         }
+        if (!pions.get(nb).couleur)
+            res=-res;
+        return res;
+    }
+
+    public int evaluation () {
+        int res=0;
+        for (int i=0;i<pions.size();i++)
+            res+=evaluationPion(i);
         return res;
     }
     
@@ -260,16 +267,25 @@ public class Plateau extends Observable {
         return victoire;
     }
 
-    public boolean echecEtMat (Vector <Pion> pis, int [][] echeq ,boolean joueur) {
+    public int echecEtMat (Vector <Pion> pis, int [][] echeq) {
+        boolean depPosJ1=false;
+        boolean depPosJ2=false;
         Pion pion=null;
         for (int i=0;i<pis.size();i++) {
             pion=pis.get(i);
-            if (pion.couleur==!joueur) {
+            if (pion.couleur) {
                 if (depPossibles.get(i).size()>0)
-                    return false;
+                    depPosJ1=true;
             }
+            else
+                if (depPossibles.get(i).size()>0)
+                    depPosJ2=true;
         }
-        return true;
+        if (!depPosJ2)
+            return 1;
+        if (!depPosJ1)
+            return 2;
+        return 0;
     }
 
     private int [][] genereEchequier (Vector <Pion> pions) {
