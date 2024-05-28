@@ -146,10 +146,10 @@ public class MF extends JFrame implements Observer{
 
             // évaluation
             int eval=plateau.evaluation();
-            if (Math.abs(eval)<=20)
+            if (Math.abs(eval)<=30)
                 System.out.println("Evaluation : "+eval+" (égalité)");
             else
-                if (eval>20)
+                if (eval>30)
                     System.out.println("Evaluation : "+eval+" (avantage Blanc)");
                 else
                     System.out.println("Evaluation : "+eval+" (avantage Noir)");

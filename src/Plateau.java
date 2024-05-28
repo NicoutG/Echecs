@@ -87,18 +87,19 @@ public class Plateau extends Observable {
             case 'q': res+=valReine+depPossiblesPion.size()*valDepReine;break;
             case 'k': res+=depPossiblesPion.size()*valDepRoi;break;
         }
-        for (int i=0;i<depPossiblesPion.size();i++) {
-            int val=echequier[depPossiblesPion.get(i)%8][depPossiblesPion.get(i)/8];
-            if (val!=0)
-                switch ((val-1)%6) {
-                    case 0:res+=coefPrise*valPion;break;
-                    case 1:res+=coefPrise*valCavalier;break;
-                    case 2:res+=coefPrise*valFou;break;
-                    case 3:res+=coefPrise*valTour;break;
-                    case 4:res+=coefPrise*valReine;break;
-                    case 5:res+=coefPrise*valRoi;break;
-                }
-        }
+        if (pions.get(nb).couleur==tour)
+            for (int i=0;i<depPossiblesPion.size();i++) {
+                int val=echequier[depPossiblesPion.get(i)%8][depPossiblesPion.get(i)/8];
+                if (val!=0)
+                    switch ((val-1)%6) {
+                        case 0:res+=coefPrise*valPion;break;
+                        case 1:res+=coefPrise*valCavalier;break;
+                        case 2:res+=coefPrise*valFou;break;
+                        case 3:res+=coefPrise*valTour;break;
+                        case 4:res+=coefPrise*valReine;break;
+                        case 5:res+=coefPrise*valRoi;break;
+                    }
+            }
         if (!pions.get(nb).couleur)
             res=-res;
         return res;
