@@ -135,7 +135,7 @@ public class MF extends JFrame implements Observer{
             int x=caseSelec%8;
             int y=caseSelec/8;
             tab[x][y].setBackground(Color.YELLOW);
-            Vector <Integer> dep=plateau.getDepPossibles();
+            Vector <Integer> dep=plateau.getDepPossiblesPionSelec();
             for (int i=0;i<dep.size();i++) {
                 x=dep.get(i)%8;
                 y=dep.get(i)/8;
@@ -143,6 +143,17 @@ public class MF extends JFrame implements Observer{
             }
         }
         else {
+
+            // évaluation
+            int eval=plateau.evaluation();
+            if (Math.abs(eval)<=10)
+                System.out.println("Evaluation : "+eval+" (égalité)");
+            else
+                if (eval>10)
+                    System.out.println("Evaluation : "+eval+" (avantage Blanc)");
+                else
+                    System.out.println("Evaluation : "+eval+" (avantage Noir)");
+            
             int caseDep=plateau.getCaseDep();
             if (caseDep>=0) {
                 int x=caseDep%8;

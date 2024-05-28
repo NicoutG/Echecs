@@ -7,10 +7,22 @@ public class Plateau extends Observable {
     private int ordre;
     private int caseSelec;
     private Pion pionSelec;
-    private Vector <Integer> depPossibles;
+    private Vector <Vector <Integer>> depPossibles;
     private int caseDep;
     private int [][] echequier;
     private int victoire=0;
+
+    private final int valPion=10;
+    private final int valCavalier=30;
+    private final int valFou=30;
+    private final int valTour=50;
+    private final int valReine=90;
+    private final int valDepPion=2;
+    private final int valDepCavalier=3;
+    private final int valDepFou=1;
+    private final int valDepTour=1;
+    private final int valDepReine=1;
+    private final int valDepRoi=5;
 
     public Plateau () {
         pions=new Vector <Pion> ();
@@ -34,31 +46,76 @@ public class Plateau extends Observable {
         pions.add(new Pion(61,true,'f'));
         pions.add(new Pion(62,true,'c'));
         pions.add(new Pion(63,true,'t'));
-        tour=true;
-        ordre=0;
         caseSelec=-1;
         pionSelec=null;
         depPossibles=null;
         caseDep=-1;
         echequier=genereEchequier(pions);
+
+        nouveauTour(true);
     }
 
     public void maj () {
         setChanged();
         notifyObservers();
     }
+
+    private void nouveauTour (boolean tourSuivant) {
+        
+        // récupération des déplacements possibles
+        depPossibles=new Vector <Vector <Integer>> ();
+        for (int i=0;i<pions.size();i++)
+            depPossibles.add(pions.get(i).getDepPossibles(pions,echequier,caseSelec,caseDep));
+        
+        // verfication de la victoire
+        if (echecEtMat(pions,echequier,tour)) {
+            if (tour)
+                victoire=1;
+            else
+                victoire=2;
+        }
+
+        ordre=0;
+        tour=tourSuivant;
+    }
+
+    public int evaluation () {
+        int res=0;
+        for (int i=0;i<pions.size();i++) {
+            if (pions.get(i).couleur)
+                switch (pions.get(i).type) {
+                    case 'p': res+=valPion+depPossibles.get(i).size()*valDepPion;break;
+                    case 'c': res+=valCavalier+depPossibles.get(i).size()*valDepCavalier;break;
+                    case 'f': res+=valFou+depPossibles.get(i).size()*valDepFou;break;
+                    case 't': res+=valTour+depPossibles.get(i).size()*valDepTour;break;
+                    case 'q': res+=valReine+depPossibles.get(i).size()*valDepReine;break;
+                    case 'k': res+=depPossibles.get(i).size()*valDepRoi;break;
+                }
+            else 
+                switch (pions.get(i).type) {
+                    case 'p': res-=valPion+depPossibles.get(i).size()*valDepPion;break;
+                    case 'c': res-=valCavalier+depPossibles.get(i).size()*valDepCavalier;break;
+                    case 'f': res-=valFou+depPossibles.get(i).size()*valDepFou;break;
+                    case 't': res-=valTour+depPossibles.get(i).size()*valDepTour;break;
+                    case 'q': res-=valReine+depPossibles.get(i).size()*valDepReine;break;
+                    case 'k': res-=depPossibles.get(i).size()*valDepRoi;break;
+                }
+        }
+        return res;
+    }
     
     public boolean action (int nb) {
         if (victoire==0) {
             if (ordre==1) { // selection du déplacement
                 boolean trouve=false;
+                Vector <Integer> depPossiblesPionSelec=getDepPossiblesPionSelec();
                 int i=0;
-                if (0<depPossibles.size())
+                if (0<depPossiblesPionSelec.size())
                     do {
-                        if (nb==depPossibles.get(i))
+                        if (nb==depPossiblesPionSelec.get(i))
                             trouve=true;
                         i++;
-                    }while (!trouve && i<depPossibles.size());
+                    }while (!trouve && i<depPossiblesPionSelec.size());
                 if (!trouve) { // si le déplacement ne fait pas partie des mouvements autorisés
                     Pion pion=getPion(nb);
                     if (pion!=null && pion.couleur==tour) {
@@ -74,7 +131,6 @@ public class Plateau extends Observable {
                     pionSelec=getPion(nb);
                     if (pionSelec==null || pionSelec.couleur!=tour)
                         return false;
-                    depPossibles=pionSelec.getDepPossibles(pions,echequier,caseSelec,caseDep);
                     caseSelec=nb;
                     ordre=1;
                 }
@@ -86,8 +142,7 @@ public class Plateau extends Observable {
                         case 3: pionSelec.type='q';break;
                     }
                     echequier[pionSelec.position%8][pionSelec.position/8]+=nb+1;
-                    ordre=0;
-                    tour=!tour;
+                    nouveauTour(!tour);
                 }
             }
             setChanged();
@@ -163,18 +218,8 @@ public class Plateau extends Observable {
         // transformation de pion
         if (pion.type=='p' && ((pion.couleur && pos<8) || (!pion.couleur && 56<=pos)))
             ordre=3;
-        else {
-            // verfication de la victoire
-            if (echecEtMat(pions,echequier,tour)) {
-                if (tour)
-                    victoire=1;
-                else
-                    victoire=2;
-            }
-
-            ordre=0;
-            tour=!tour;
-        }
+        else
+            nouveauTour(!tour);
     }
 
     private Pion getPion (int pos) {
@@ -204,8 +249,11 @@ public class Plateau extends Observable {
         return caseDep;
     }
 
-    public Vector <Integer> getDepPossibles() {
-        return depPossibles;
+    public Vector <Integer> getDepPossiblesPionSelec () {
+        for (int i=0;i<pions.size();i++)
+            if (caseSelec==pions.get(i).position)
+                return depPossibles.get(i);
+        return null;
     }
 
     public int getVictoire() {
@@ -216,9 +264,10 @@ public class Plateau extends Observable {
         Pion pion=null;
         for (int i=0;i<pis.size();i++) {
             pion=pis.get(i);
-            if (pion.couleur==!joueur)
-                if (pion.getDepPossibles(pis,echeq,caseSelec,caseDep).size()!=0)
+            if (pion.couleur==!joueur) {
+                if (depPossibles.get(i).size()>0)
                     return false;
+            }
         }
         return true;
     }
