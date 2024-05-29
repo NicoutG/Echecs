@@ -81,7 +81,7 @@ public class MF extends JFrame implements Observer{
         changePion=new JButton [4];
         for (int i=0;i<4;i++) {
             changePion[i]=new JButton();
-                final int nb=i;
+                final int nb=64+i;
                 changePion[i].addActionListener(e -> {
                     plateau.action(nb);
                     requestFocusInWindow();

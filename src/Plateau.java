@@ -10,7 +10,12 @@ public class Plateau extends Observable {
     private Vector <Vector <Integer>> depPossibles;
     private int caseDep;
     private int [][] echequier;
-    private int victoire=0;
+    private int victoire;
+
+    private Vector <Integer> caseSelecPre;
+    private Vector <Integer> caseDepPre;
+    private Vector <Pion> pionSelecPre;
+    private Vector <Pion> pionMangePre;
 
     private final int valPion=10;
     private final int valCavalier=30;
@@ -53,7 +58,12 @@ public class Plateau extends Observable {
         depPossibles=null;
         caseDep=-1;
         echequier=genereEchequier(pions);
-
+        victoire=0;
+        caseSelecPre=new Vector <Integer> ();
+        caseDepPre=new Vector <Integer> ();
+        caseSelecPre=new Vector <Integer> ();
+        pionSelecPre=new Vector <Pion> ();
+        pionMangePre=new Vector <Pion> ();
         nouveauTour(true);
     }
 
@@ -143,13 +153,15 @@ public class Plateau extends Observable {
                     ordre=1;
                 }
                 else {
+                    if (nb<64 || 67<nb)
+                        return false;
                     switch (nb) {
-                        case 0: pionSelec.type='c';break;
-                        case 1: pionSelec.type='f';break;
-                        case 2: pionSelec.type='t';break;
-                        case 3: pionSelec.type='q';break;
+                        case 64: pionSelec.type='c';break;
+                        case 65: pionSelec.type='f';break;
+                        case 66: pionSelec.type='t';break;
+                        case 67: pionSelec.type='q';break;
                     }
-                    echequier[pionSelec.position%8][pionSelec.position/8]+=nb+1;
+                    echequier[pionSelec.position%8][pionSelec.position/8]+=nb-63;
                     nouveauTour(!tour);
                 }
             }
@@ -163,6 +175,7 @@ public class Plateau extends Observable {
     private void deplacerPion (Pion pion, int pos) {
         caseSelec=pion.position;
         caseDep=pos;
+        boolean mange=false;
 
         // si roque
         if (pion.type=='k' && !pion.deplacer && ((pion.couleur && (pos==58 || pos==62)) || (!pion.couleur && (pos==2 || pos==6)))) {
@@ -198,8 +211,11 @@ public class Plateau extends Observable {
         }
         else {
             Pion pionMange=getPion(pos);
-            if (pionMange!=null)
+            if (pionMange!=null) {
+                mange=true;
+                pionMangePre.add(pionMange);
                 pions.remove(pionMange);
+            }
         }
 
         // prise en passant
@@ -207,16 +223,28 @@ public class Plateau extends Observable {
             if (pion.couleur && echequier[caseDep%8][caseDep/8+1]==7) {
                 echequier[caseDep%8][caseDep/8+1]=0;
                 Pion pionMange=getPion(pos+8);
-                if (pionMange!=null)
+                if (pionMange!=null) {
+                    mange=true;
+                    pionMangePre.add(pionMange);
                     pions.remove(pionMange);
+                }
             }
             if (!pion.couleur && echequier[caseDep%8][caseDep/8-1]==1) {
                 echequier[caseDep%8][caseDep/8-1]=0;
                 Pion pionMange=getPion(pos-8);
-                if (pionMange!=null)
+                if (pionMange!=null) {
+                    mange=true;
+                    pionMangePre.add(pionMange);
                     pions.remove(pionMange);
+                }
             }
         }
+
+        caseSelecPre.add(caseSelec);
+        caseDepPre.add(caseDep);
+        pionSelecPre.add(pion);
+        if (!mange)
+            pionMangePre.add(null);
 
         pion.deplacer=true;
         pion.position=pos;
