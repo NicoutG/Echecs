@@ -61,6 +61,14 @@ public class MF extends JFrame implements Observer{
         jpE.setLayout(new GridLayout(8, 8));
         jpE.setPreferredSize(new Dimension(8*tailleCase, 8*tailleCase));
 
+        JButton rollBackButton=new JButton("Roll back");
+        rollBackButton.addActionListener(e -> {
+            plateau.rollBack();
+            plateau.maj();
+            requestFocusInWindow();
+        });
+        jp.add(rollBackButton);
+
         for (int j=0;j<8;j++)
             for (int i=0;i<8;i++) {
                 tab[i][j]=new JButton();
