@@ -11,6 +11,7 @@ public class Plateau extends Observable {
     private int caseDep;
     private int [][] echequier;
     private int victoire;
+    private int coupEgalite;
 
     private Vector <Integer> caseSelecPre;
     private Vector <Integer> caseDepPre;
@@ -57,6 +58,7 @@ public class Plateau extends Observable {
         pionSelec=null;
         depPossibles=null;
         caseDep=-1;
+        coupEgalite=0;
         echequier=genereEchequier(pions);
         victoire=0;
         caseSelecPre=new Vector <Integer> ();
@@ -162,6 +164,8 @@ public class Plateau extends Observable {
                     }
                 }
             }
+            if (coupEgalite>0)
+                coupEgalite--;
             nouveauTour(!tour);
         }
     }
@@ -224,11 +228,19 @@ public class Plateau extends Observable {
             }
             case 1: return 1000;
             case 2: return -1000;
+            case 3: return 0;
         }
         return 0;
     }
     
     public boolean action (int nb) {
+        boolean res=simulerAction(nb);
+        if (res)
+            maj();
+        return res;
+    }
+
+    public boolean simulerAction (int nb) {
         if (victoire==0) {
             if (ordre==1) { // selection du déplacement
                 boolean trouve=false;
@@ -271,8 +283,6 @@ public class Plateau extends Observable {
                     nouveauTour(!tour);
                 }
             }
-            setChanged();
-            notifyObservers();
             return true;
         }
         return false;
@@ -351,7 +361,10 @@ public class Plateau extends Observable {
         pionSelecPre.add(0,pion);
         if (!mange)
             pionMangePre.add(0,null);
-
+        else
+            coupEgalite++;
+        if (pionSelec.type=='p')
+            coupEgalite=0;
         pion.deplacer=true;
         pion.position=pos;
         echequier[caseDep%8][caseDep/8]=echequier[caseSelec%8][caseSelec/8];
@@ -420,6 +433,8 @@ public class Plateau extends Observable {
             return 1;
         if (!depPosJ1)
             return 2;
+        if (coupEgalite>=50)
+            return 3;
         return 0;
     }
 

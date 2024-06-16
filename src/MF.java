@@ -30,6 +30,10 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
+    private Joueur joueur1=new Humain ();
+
+    private Joueur joueur2=new Humain ();
+
     /**
      * Constructeur de MF
      * @param niv le niveau actuel
@@ -74,8 +78,10 @@ public class MF extends JFrame implements Observer{
                 tab[i][j]=new JButton();
                 final int nb=i+8*j;
                 tab[i][j].addActionListener(e -> {
-                    plateau.action(nb);
-                    requestFocusInWindow();
+                    if ((plateau.getTour() && joueur1 instanceof Humain) || (!plateau.getTour() && joueur2 instanceof Humain)) {
+                        plateau.action(nb);
+                        requestFocusInWindow();
+                    }
                 });
                 jpE.add(tab[i][j]);
             }
@@ -91,8 +97,10 @@ public class MF extends JFrame implements Observer{
             changePion[i]=new JButton();
                 final int nb=64+i;
                 changePion[i].addActionListener(e -> {
-                    plateau.action(nb);
-                    requestFocusInWindow();
+                    if ((plateau.getTour() && joueur1 instanceof Humain) || (!plateau.getTour() && joueur2 instanceof Humain)) {
+                        plateau.action(nb);
+                        requestFocusInWindow();
+                    }
                 });
                 jpC.add(changePion[i]);
         }
@@ -209,11 +217,15 @@ public class MF extends JFrame implements Observer{
                 changePion[i].setVisible(false);
         }
 
-        if (plateau.getVictoire()!=0) {
-            if (plateau.getVictoire()==1)
-                System.out.println("Victoire des blancs");
-            else
-            System.out.println("Victoire des noirs");
+        switch (plateau.getVictoire()) {
+            case 1: System.out.println("Victoire des blancs");break;
+            case 2: System.out.println("Victoire des noirs");break;
+            case 3: System.out.println("Egalité");break;
         }
+
+        if (plateau.getTour())
+            joueur1.jouer(plateau);
+        else
+            joueur2.jouer(plateau);
     }
 }
