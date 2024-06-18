@@ -2,21 +2,16 @@ import java.util.Observable;
 import java.util.Vector;
 
 public class Plateau extends Observable {
-    private Vector <Pion> pions;
-    private boolean tour;
-    private int ordre;
-    private int caseSelec;
-    private Pion pionSelec;
-    private Vector <Vector <Integer>> depPossibles;
-    private int caseDep;
-    private int [][] echequier;
-    private int victoire;
-    private int coupEgalite;
-
-    private Vector <Integer> caseSelecPre;
-    private Vector <Integer> caseDepPre;
-    private Vector <Pion> pionSelecPre;
-    private Vector <Pion> pionMangePre;
+    protected Vector <Pion> pions;
+    protected boolean tour;
+    protected int ordre;
+    protected int caseSelec;
+    protected Pion pionSelec;
+    protected Vector <Vector <Integer>> depPossibles;
+    protected int caseDep;
+    protected int [][] echequier;
+    protected int victoire;
+    protected int coupEgalite;
 
     private final int valPion=10;
     private final int valCavalier=30;
@@ -33,6 +28,17 @@ public class Plateau extends Observable {
     private final double coefPrise=0.5;
 
     public Plateau () {
+        pions=null;
+        caseSelec=-1;
+        pionSelec=null;
+        depPossibles=null;
+        caseDep=-1;
+        coupEgalite=0;
+        echequier=new int [8][8];
+        victoire=0;
+    }
+
+    public void init () {
         pions=new Vector <Pion> ();
         pions.add(new Pion(0,false,'t'));
         pions.add(new Pion(1,false,'c'));
@@ -61,113 +67,7 @@ public class Plateau extends Observable {
         coupEgalite=0;
         echequier=genereEchequier(pions);
         victoire=0;
-        caseSelecPre=new Vector <Integer> ();
-        caseDepPre=new Vector <Integer> ();
-        caseSelecPre=new Vector <Integer> ();
-        pionSelecPre=new Vector <Pion> ();
-        pionMangePre=new Vector <Pion> ();
         nouveauTour(true);
-    }
-
-    public void rollBack () {
-        if (0<caseSelecPre.size()) {
-            victoire=0;
-            if (1<caseSelecPre.size()) {
-                caseSelec=caseSelecPre.get(1);
-                caseDep=caseDepPre.get(1);
-                pionSelec=pionSelecPre.get(1);
-            }
-            else {
-                caseSelec=-1;
-                caseDep=-1;
-                pionSelec=null;
-            }
-            Pion pionR=pionSelecPre.get(0);
-            pionSelecPre.remove(0);
-            int caseSelecR=caseSelecPre.get(0);
-            caseSelecPre.remove(0);
-            int caseDepR=caseDepPre.get(0);
-            caseDepPre.remove(0);
-            Pion pionMangeR=pionMangePre.get(0);
-            pionMangePre.remove(0);
-            if (pionR.type=='k' && Math.abs(caseDepR-caseSelecR)>1 && Math.abs(caseDepR-caseSelecR)<7) {
-                // si le roi à roqué
-                echequier[caseDepR%8][caseDepR/8]=0;
-                Pion tour=null;
-                switch (caseDepR) {
-                    case 2: {
-                        pionR.position=4;
-                        tour=getPion(3);
-                        tour.position=0;
-                        echequier[4][0]=12;
-                        echequier[3][0]=0;
-                        echequier[0][0]=10;
-                    }break;
-                    case 6: {
-                        pionR.position=4;
-                        tour=getPion(5);
-                        tour.position=7;
-                        echequier[4][0]=12;
-                        echequier[5][0]=0;
-                        echequier[7][0]=10;
-                    }break;
-                    case 58: {
-                        pionR.position=60;
-                        tour=getPion(59);
-                        tour.position=56;
-                        echequier[4][7]=6;
-                        echequier[3][7]=0;
-                        echequier[0][7]=4;
-                    }break;
-                    case 62: {
-                        pionR.position=60;
-                        tour=getPion(61);
-                        tour.position=63;
-                        echequier[4][7]=6;
-                        echequier[5][7]=0;
-                        echequier[7][7]=4;
-                    }break;
-                }
-                pionR.deplacer=false;
-                tour.deplacer=false;
-            }
-            else {
-                // deplacement du pion
-                pionR.position=caseSelecR;
-                int couleur=0;
-                if (!pionR.couleur)
-                    couleur=6;
-                switch (pionR.type) {
-                    case 'p':echequier[caseSelecR%8][caseSelecR/8]=couleur+1;break;
-                    case 'c':echequier[caseSelecR%8][caseSelecR/8]=couleur+2;break;
-                    case 'f':echequier[caseSelecR%8][caseSelecR/8]=couleur+3;break;
-                    case 't':echequier[caseSelecR%8][caseSelecR/8]=couleur+4;break;
-                    case 'q':echequier[caseSelecR%8][caseSelecR/8]=couleur+5;break;
-                    case 'k':echequier[caseSelecR%8][caseSelecR/8]=couleur+6;break;
-                }
-                echequier[caseDepR%8][caseDepR/8]=0;
-                pionR.deplacer=caseDepPre.contains(caseSelecR);
-
-                // Ajout du pion mangé
-                if (pionMangeR!=null) {
-                    pions.add(pionMangeR);
-                    couleur=0;
-                    if (!pionMangeR.couleur)
-                        couleur=6;
-                    switch (pionMangeR.type) {
-                        case 'p':echequier[pionMangeR.position%8][pionMangeR.position/8]=couleur+1;break;
-                        case 'c':echequier[pionMangeR.position%8][pionMangeR.position/8]=couleur+2;break;
-                        case 'f':echequier[pionMangeR.position%8][pionMangeR.position/8]=couleur+3;break;
-                        case 't':echequier[pionMangeR.position%8][pionMangeR.position/8]=couleur+4;break;
-                        case 'q':echequier[pionMangeR.position%8][pionMangeR.position/8]=couleur+5;break;
-                        case 'k':echequier[pionMangeR.position%8][pionMangeR.position/8]=couleur+6;break;
-                    }
-                }
-            }
-            if (coupEgalite>0)
-                coupEgalite--;
-            nouveauTour(!tour);
-        }
     }
 
     public void maj () {
@@ -232,15 +132,8 @@ public class Plateau extends Observable {
         }
         return 0;
     }
-    
-    public boolean action (int nb) {
-        boolean res=simulerAction(nb);
-        if (res)
-            maj();
-        return res;
-    }
 
-    public boolean simulerAction (int nb) {
+    public boolean action (int nb) {
         if (victoire==0) {
             if (ordre==1) { // selection du déplacement
                 boolean trouve=false;
@@ -283,6 +176,7 @@ public class Plateau extends Observable {
                     nouveauTour(!tour);
                 }
             }
+            maj();
             return true;
         }
         return false;
@@ -329,7 +223,6 @@ public class Plateau extends Observable {
             Pion pionMange=getPion(pos);
             if (pionMange!=null) {
                 mange=true;
-                pionMangePre.add(0,pionMange);
                 pions.remove(pionMange);
             }
         }
@@ -341,7 +234,6 @@ public class Plateau extends Observable {
                 Pion pionMange=getPion(pos+8);
                 if (pionMange!=null) {
                     mange=true;
-                    pionMangePre.add(0,pionMange);
                     pions.remove(pionMange);
                 }
             }
@@ -350,18 +242,12 @@ public class Plateau extends Observable {
                 Pion pionMange=getPion(pos-8);
                 if (pionMange!=null) {
                     mange=true;
-                    pionMangePre.add(0,pionMange);
                     pions.remove(pionMange);
                 }
             }
         }
 
-        caseSelecPre.add(0,caseSelec);
-        caseDepPre.add(0,caseDep);
-        pionSelecPre.add(0,pion);
         if (!mange)
-            pionMangePre.add(0,null);
-        else
             coupEgalite++;
         if (pionSelec.type=='p')
             coupEgalite=0;
@@ -402,6 +288,10 @@ public class Plateau extends Observable {
 
     public int getCaseDep() {
         return caseDep;
+    }
+
+    public int getCoupEgalite() {
+        return coupEgalite;
     }
 
     public Vector <Integer> getDepPossiblesPionSelec () {
@@ -463,6 +353,31 @@ public class Plateau extends Observable {
             }
         }
         return echequier;
+    }
+
+    protected Plateau clone() {
+        Plateau res=new Plateau();
+        res.pions=new Vector <Pion> ();
+        for (Pion pion: pions)
+            res.pions.add(pion.clone());
+        res.tour=tour;
+        res.ordre=ordre;
+        res.caseSelec=caseSelec;
+        if (pionSelec!=null)
+            res.pionSelec=pionSelec.clone();
+        res.depPossibles=new Vector <Vector <Integer>> ();
+        for (int i=0;i<depPossibles.size();i++) {
+            res.depPossibles.add(new Vector<>());
+            for (int dep : depPossibles.get(i))
+                res.depPossibles.get(i).add(dep);
+        }
+        res.caseDep=caseDep;
+        for (int i=0;i<8;i++)
+            for (int j=0;j<8;j++)
+                res.echequier[i][j]=echequier[i][j];
+        res.victoire=victoire;
+        res.coupEgalite=coupEgalite;
+        return res;
     }
 
 }

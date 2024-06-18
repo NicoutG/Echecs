@@ -30,9 +30,9 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
-    private Joueur joueur1=new Humain ();
+    private Joueur joueur1=new AlphaBeta(4);
 
-    private Joueur joueur2=new Humain ();
+    private Joueur joueur2=new Humain ();//new Humain ();
 
     /**
      * Constructeur de MF
@@ -64,14 +64,6 @@ public class MF extends JFrame implements Observer{
         JPanel jpE=new JPanel(); 
         jpE.setLayout(new GridLayout(8, 8));
         jpE.setPreferredSize(new Dimension(8*tailleCase, 8*tailleCase));
-
-        JButton rollBackButton=new JButton("Roll back");
-        rollBackButton.addActionListener(e -> {
-            plateau.rollBack();
-            plateau.maj();
-            requestFocusInWindow();
-        });
-        jp.add(rollBackButton);
 
         for (int j=0;j<8;j++)
             for (int i=0;i<8;i++) {
@@ -159,16 +151,6 @@ public class MF extends JFrame implements Observer{
             }
         }
         else {
-
-            // évaluation
-            int eval=plateau.evaluation();
-            if (Math.abs(eval)<=30)
-                System.out.println("Evaluation : "+eval+" (égalité)");
-            else
-                if (eval>30)
-                    System.out.println("Evaluation : "+eval+" (avantage Blanc)");
-                else
-                    System.out.println("Evaluation : "+eval+" (avantage Noir)");
             
             int caseDep=plateau.getCaseDep();
             if (caseDep>=0) {
@@ -222,10 +204,21 @@ public class MF extends JFrame implements Observer{
             case 2: System.out.println("Victoire des noirs");break;
             case 3: System.out.println("Egalité");break;
         }
-
-        if (plateau.getTour())
-            joueur1.jouer(plateau);
-        else
-            joueur2.jouer(plateau);
+        if (plateau.getOrdre()==0) {
+            // évaluation
+            int eval=plateau.evaluation();
+            if (Math.abs(eval)<=30)
+                System.out.println("Evaluation : "+eval+" (égalité)");
+            else
+                if (eval>30)
+                    System.out.println("Evaluation : "+eval+" (avantage Blanc)");
+                else
+                    System.out.println("Evaluation : "+eval+" (avantage Noir)");
+            
+            if (plateau.getTour())
+                joueur1.jouer(plateau);
+            else
+                joueur2.jouer(plateau);
+        }
     }
 }

@@ -1,6 +1,6 @@
 import java.util.Vector;
 
-public class Pion {
+public class Pion implements Cloneable {
     public int position;
     public boolean couleur;
     public char type;
@@ -122,7 +122,7 @@ public class Pion {
                 addDep(pions,echequier,dep,res);
         }
         dep=position+6;
-        if (dep<=64 && 1<x) {
+        if (dep<64 && 1<x) {
             int pion=echequier[dep%8][dep/8];
             if (pion==0 || (pion<7 && !couleur) || ((7<=pion && couleur)))
                 addDep(pions,echequier,dep,res);
@@ -134,13 +134,13 @@ public class Pion {
                 addDep(pions,echequier,dep,res);
         }
         dep=position+15;
-        if (dep<=64 && 0<x) {
+        if (dep<64 && 0<x) {
             int pion=echequier[dep%8][dep/8];
             if (pion==0 || (pion<7 && !couleur) || ((7<=pion && couleur)))
                 addDep(pions,echequier,dep,res);
         }
         dep=position+17;
-        if (dep<=64 && x<7) {
+        if (dep<64 && x<7) {
             int pion=echequier[dep%8][dep/8];
             if (pion==0 || (pion<7 && !couleur) || ((7<=pion && couleur)))
                 addDep(pions,echequier,dep,res);
@@ -533,6 +533,12 @@ public class Pion {
             xdep--;
         }
         return false;
+    }
+
+    protected Pion clone() {
+        Pion res=new Pion(position, couleur, type);
+        res.deplacer=deplacer;
+        return res;
     }
 
 }
