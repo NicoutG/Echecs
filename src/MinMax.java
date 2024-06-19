@@ -2,7 +2,6 @@ import java.util.Vector;
 
 public class MinMax extends Joueur{
     private int profondeur;
-    private boolean joueur;
 
     MinMax (int prof) {
         profondeur=prof;
