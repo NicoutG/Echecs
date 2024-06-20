@@ -82,7 +82,7 @@ public class Plateau extends Observable {
     }
 
     private void addConfig () {
-        int [] res=new int [4];
+        int [] res=new int [2];
         res[0]=0;
         res[1]=0;
         for (Pion pion : pions) {
@@ -106,13 +106,11 @@ public class Plateau extends Observable {
                     case 'k': val=12;break;
                 }
             }
-            res[0]+=val;
-            res[1]+=pion.position*val;
+            res[0]+=pion.position*val;
         }
-        res[2]=0;
+
         for (Vector <Integer> depPion : depPossibles)
-            res[2]+=depPion.size();
-        res[3]=calculEvaluation();
+            res[1]+=depPion.size();
         config.add(0,res);
     }
 
@@ -161,7 +159,7 @@ public class Plateau extends Observable {
         return res;
     }
 
-    private int calculEvaluation () {
+    public int evaluation () {
         switch (victoire) {
             case 0: {
                 int res=0;
@@ -174,10 +172,6 @@ public class Plateau extends Observable {
             case 3: return 0;
         }
         return 0;
-    }
-
-    public int evaluation () {
-        return config.get(0)[3];
     }
 
     public boolean action (int nb) {
@@ -235,7 +229,7 @@ public class Plateau extends Observable {
         boolean mange=false;
 
         // si roque
-        if (pion.type=='k' && !pion.deplacer && ((pion.couleur && (pos==58 || pos==62)) || (!pion.couleur && (pos==2 || pos==6)))) {
+        if (pion.type=='k' && pion.deplacer==0 && ((pion.couleur && (pos==58 || pos==62)) || (!pion.couleur && (pos==2 || pos==6)))) {
             Pion tourRoque=null;
             switch (pos) {
                 case 58: {
@@ -263,7 +257,7 @@ public class Plateau extends Observable {
                     echequier[5][0]=10;
                 }break;
             }
-            tourRoque.deplacer=true;
+            tourRoque.deplacer++;
 
         }
         else {
@@ -294,19 +288,22 @@ public class Plateau extends Observable {
             }
         }
 
+        if (pionSelec.type=='p') {
+            config=new Vector <int []> ();
+            if (tour)
+                coupEgaliteBlanc=0;
+            else
+                coupEgaliteNoir=0;
+        }
         if (!mange) {
             if (tour)
                 coupEgaliteBlanc++;
             else
                 coupEgaliteNoir++;
         }
-        if (pionSelec.type=='p') {
-            if (tour)
-                coupEgaliteBlanc=0;
-            else
-                coupEgaliteNoir=0;
-        }
-        pion.deplacer=true;
+        else
+            config=new Vector <int []> ();
+        pion.deplacer++;
         pion.position=pos;
         echequier[caseDep%8][caseDep/8]=echequier[caseSelec%8][caseSelec/8];
         echequier[caseSelec%8][caseSelec/8]=0;
@@ -386,7 +383,7 @@ public class Plateau extends Observable {
                 int nb=1;
                 for (int j=i+1;j<config.size();j++) {
                     int [] get=config.get(j);
-                    if (comp[0]==get[0] && comp[1]==get[1] && comp[2]==get[2] && comp[3]==get[3]) {
+                    if (comp[0]==get[0] && comp[1]==get[1]) {
                         nb++;
                         if (3<=nb)
                             return true;
@@ -449,12 +446,10 @@ public class Plateau extends Observable {
         res.coupEgaliteNoir=coupEgaliteNoir;
         res.config=new Vector<int []>();
         for (int i=0;i<config.size();i++) {
-            int [] copie=new int [4];
+            int [] copie=new int [2];
             int [] original=config.get(i);
             copie[0]=original[0];
             copie[1]=original[1];
-            copie[2]=original[2];
-            copie[3]=original[3];
             res.config.add(copie);
         }
         return res;

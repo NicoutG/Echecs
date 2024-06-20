@@ -4,13 +4,13 @@ public class Pion implements Cloneable {
     public int position;
     public boolean couleur;
     public char type;
-    public boolean deplacer;
+    public int deplacer;
 
     public Pion (int pos, boolean coul, char tp) {
         position=pos;
         couleur=coul;
         type=tp;
-        deplacer=false;
+        deplacer=0;
     }
 
     public Vector <Integer> getDepPossibles (Vector <Pion> pions, int [][] echequier, int posPrec, int depPrec) {
@@ -54,7 +54,7 @@ public class Pion implements Cloneable {
         if (0<=dep1 && dep1<=64) {
             if (echequier[dep1%8][dep1/8]==0) {
                 addDep(pions,echequier,dep1,res);
-                if (!deplacer) {
+                if (deplacer==0) {
                     if (echequier[dep2%8][dep2/8]==0)
                         addDep(pions,echequier,dep2,res);
                 }
@@ -317,20 +317,20 @@ public class Pion implements Cloneable {
         }
 
         // roquer
-        if (!deplacer) {
+        if (deplacer==0) {
             if (!echec(pions, echequier, couleur)) {
                 Pion tour;
                 if (couleur) {
                     if (echequier[0][7]==4 && echequier[1][7]==0 && echequier[2][7]==0 && echequier[3][7]==0) {
                         tour=getPion(56, pions);
-                        if (!tour.deplacer) {
+                        if (tour.deplacer==0) {
                             if (depAutorise(pions,echequier,59))
                                 addDep(pions, echequier, 58, res);
                         }
                     }
                     if (echequier[5][7]==0 && echequier[6][7]==0 && echequier[7][7]==4) {
                         tour=getPion(63, pions);
-                        if (!tour.deplacer) {
+                        if (tour.deplacer==0) {
                             if (depAutorise(pions,echequier,61))
                                 addDep(pions, echequier, 62, res);
                         }
@@ -338,14 +338,14 @@ public class Pion implements Cloneable {
                 }else {
                     if (echequier[0][0]==10 && echequier[1][0]==0 && echequier[2][0]==0 && echequier[3][0]==0) {
                         tour=getPion(0, pions);
-                        if (!tour.deplacer) {
+                        if (tour.deplacer==0) {
                             if (depAutorise(pions,echequier,3))
                                 addDep(pions, echequier, 2, res);
                         }
                     }
                     if (echequier[5][0]==0 && echequier[6][0]==0 && echequier[7][0]==10) {
                         tour=getPion(7, pions);
-                        if (!tour.deplacer) {
+                        if (tour.deplacer==0) {
                             if (depAutorise(pions,echequier,5))
                                 addDep(pions, echequier, 6, res);
                         }
