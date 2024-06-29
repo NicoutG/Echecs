@@ -29,7 +29,7 @@ public class MF extends JFrame implements Observer{
 
     private Joueur joueur1=new AlphaBeta(4);
 
-    private Joueur joueur2=new Humain ();//new Humain ();
+    private Joueur joueur2=new Humain ();
 
     /**
      * Constructeur de MF

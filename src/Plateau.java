@@ -349,6 +349,19 @@ public class Plateau extends Observable {
         return null;
     }
 
+    public Vector <int []> getDepPossibles () {
+        Vector <int []> deps=new Vector <int []> ();
+        for (int i=0;i<depPossibles.size();i++) {
+            if (pions.get(i).couleur==tour)
+                for (int j=0;j<depPossibles.get(i).size();j++) {
+                    deps.add(new int [2]);
+                    deps.lastElement()[0]=pions.get(i).position;
+                    deps.lastElement()[1]=depPossibles.get(i).get(j);
+                }
+        }
+        return deps;
+    }
+
     public int getVictoire() {
         return victoire;
     }
