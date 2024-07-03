@@ -27,9 +27,9 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
-    private Joueur joueur1=new AlphaBeta(4);
+    private Joueur joueur1=new AlphaBeta(5);
 
-    private Joueur joueur2=new AlphaBeta(4);//new Mcts (100,2,Math.sqrt(2));
+    private Joueur joueur2=new Humain ();//new Mcts (100,2,Math.sqrt(2));
 
     /**
      * Constructeur de MF

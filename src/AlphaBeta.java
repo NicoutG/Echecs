@@ -2,17 +2,14 @@ import java.util.Vector;
 
 public class AlphaBeta extends Joueur{
     private int profondeur;
-    private int nb;
 
     AlphaBeta (int prof) {
         profondeur=prof;
     }
 
     public void jouer (Plateau plateau) {
-        nb=0;
         Plateau plateau2=plateau.clone();
         int [] res=simuler(plateau2, profondeur,-9999,9999);
-        System.out.println("nb coups : "+nb);
         if (res[1]!=-1) {
             plateau.action(res[1]);
             plateau.action(res[2]);
@@ -25,36 +22,27 @@ public class AlphaBeta extends Joueur{
         int [] res=new int [3];
         if (reste>0 || plateau.getVictoire()!=0) {
             Vector <int []> vals=new Vector <int []> ();
-            int pionSize=plateau.getPions().size();
-            for (int i=0;i<pionSize;i++) {
-                Pion pion=plateau.getPions().get(i);
-                if (pion.couleur==plateau.getTour()) {
-                    Plateau plateau2=plateau.clone();
-                    plateau2.action(pion.position);
-                    if (plateau2.getDepPossiblesPionSelec()!=null) {
-                        for (int dep : plateau2.getDepPossiblesPionSelec()) {
-                            plateau2=plateau.clone();
-                            plateau2.action(pion.position);
-                            plateau2.action(dep);
-                            if (plateau2.getOrdre()==3)
-                                plateau2.action(67);
-                            res=simuler(plateau2,reste-1,alpha,beta);
-                            res[1]=pion.position;
-                            res[2]=dep;
-                            if (!plateau.getTour()) {
-                                if (alpha>=res[0])
-                                    return res;
-                                beta=Math.min(beta,res[0]);
-                            }
-                            else {
-                                if (beta<=res[0])
-                                    return res;
-                                alpha=Math.max(alpha,res[0]);
-                            }
-                            vals.add(res);
-                        }
-                    }
+            Vector <int []> depPossibles=triDepPossibles(plateau);
+            for (int i=0;i<depPossibles.size();i++) {
+                Plateau plateau2=plateau.clone();
+                plateau2.action(depPossibles.get(i)[0]);
+                plateau2.action(depPossibles.get(i)[1]);
+                if (plateau2.getOrdre()==3)
+                    plateau2.action(67);
+                res=simuler(plateau2,reste-1,alpha,beta);
+                res[1]=depPossibles.get(i)[0];
+                res[2]=depPossibles.get(i)[1];
+                if (!plateau.getTour()) {
+                    if (alpha>=res[0])
+                        return res;
+                    beta=Math.min(beta,res[0]);
                 }
+                else {
+                    if (beta<=res[0])
+                        return res;
+                    alpha=Math.max(alpha,res[0]);
+                }
+                vals.add(res);
             }
 
             // récupération de la meilleur ou de la pire valeur
@@ -70,7 +58,6 @@ public class AlphaBeta extends Joueur{
                 return res;
             }
         }
-        nb++;
         res[0]=plateau.evaluation();
         res[1]=-1;
         res[2]=-1;
