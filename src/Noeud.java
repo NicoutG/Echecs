@@ -113,7 +113,7 @@ public class Noeud {
 
     private int jouer (Plateau plateau) {
         if (plateau.getVictoire()==0) {
-            jouerCoupAleatoire(plateau);
+            jouerCoupMinMax(plateau);
             return jouer(plateau);
         }
         else {
@@ -156,6 +156,56 @@ public class Noeud {
         int choix=random.nextInt(deps.size());
         plateau.action(deps.get(choix)[0]);
         plateau.action(deps.get(choix)[1]);
+        if (plateau.getOrdre()==3)
+                plateau.action(67);
+    }
+
+    private void jouerCoupMinMax (Plateau plateau) {
+        int n=3;
+        Vector <int []> deps=plateau.getDepPossibles();
+        Vector <int []> depBest=new Vector <int []> ();
+        Vector <Integer> evaluations=new Vector <Integer> ();
+        for (int i=0;i<deps.size();i++) {
+            Plateau plateau2=plateau.clone();
+            plateau2.action(deps.get(i)[0]);
+            plateau2.action(deps.get(i)[1]);
+            int evaluation=plateau2.evaluation();
+            if (evaluation==1000 || evaluation==-1000) {
+                plateau.action(deps.get(i)[0]);
+                plateau.action(deps.get(i)[1]);
+                if (plateau.getOrdre()==3)
+                    plateau.action(67);
+                return ;
+            }
+            if (!plateau.getTour())
+                evaluation*=-1;
+            if (depBest.size()==0) {
+                depBest.add(deps.get(i));
+                evaluations.add(evaluation);
+            }
+            else {
+                if (evaluation>evaluations.get(0)) {
+                    int j=1;
+                    while (j<evaluations.size() && evaluations.get(j)<evaluation)
+                        j++;
+                    depBest.add(j,deps.get(i));
+                    evaluations.add(j,evaluation);
+                    if (depBest.size()<=n) {
+                        depBest.remove(0);
+                        evaluations.remove(0);
+                    }
+                }
+                else
+                    if (depBest.size()<n) {
+                        depBest.add(0,deps.get(i));
+                        evaluations.add(0,evaluation);
+                    }
+            }
+        }
+        Random random=new Random();
+        int choix=random.nextInt(depBest.size());
+        plateau.action(depBest.get(choix)[0]);
+        plateau.action(depBest.get(choix)[1]);
         if (plateau.getOrdre()==3)
                 plateau.action(67);
     }

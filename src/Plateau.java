@@ -7,6 +7,7 @@ public class Plateau extends Observable {
     protected int ordre;
     protected int caseSelec;
     protected Pion pionSelec;
+    protected int indicePionSelec;
     protected Vector <Vector <Integer>> depPossibles;
     protected int caseDep;
     protected int [][] echequier;
@@ -115,7 +116,6 @@ public class Plateau extends Observable {
     }
 
     private void nouveauTour (boolean tourSuivant) {
-        
         // récupération des déplacements possibles
         depPossibles=new Vector <Vector <Integer>> ();
         for (int i=0;i<pions.size();i++)
@@ -187,10 +187,13 @@ public class Plateau extends Observable {
                         i++;
                     }while (!trouve && i<depPossiblesPionSelec.size());
                 if (!trouve) { // si le déplacement ne fait pas partie des mouvements autorisés
-                    Pion pion=getPion(nb);
-                    if (pion!=null && pion.couleur==tour) {
-                        ordre=0;
-                        action(nb);
+                    int indicePion=getPion(nb);
+                    if (indicePion!=-1) {
+                        Pion pion=pions.get(indicePion);
+                        if (pion.couleur==tour) {
+                            ordre=0;
+                            action(nb);
+                        }
                     }
                     return false;
                 }
@@ -198,8 +201,11 @@ public class Plateau extends Observable {
             }
             else {
                 if (ordre==0) { // selection du pion
-                    pionSelec=getPion(nb);
-                    if (pionSelec==null || pionSelec.couleur!=tour)
+                    indicePionSelec=getPion(nb);
+                    if (indicePionSelec==-1)
+                        return false;
+                    pionSelec=pions.get(indicePionSelec);
+                    if (pionSelec.couleur!=tour)
                         return false;
                     caseSelec=nb;
                     ordre=1;
@@ -233,25 +239,25 @@ public class Plateau extends Observable {
             Pion tourRoque=null;
             switch (pos) {
                 case 58: {
-                    tourRoque=getPion(56);
+                    tourRoque=pions.get(getPion(56));
                     tourRoque.position=59;
                     echequier[0][7]=0;
                     echequier[3][7]=4;
                 }break;
                 case 62: {
-                    tourRoque=getPion(63);
+                    tourRoque=pions.get(getPion(63));
                     tourRoque.position=61;
                     echequier[7][7]=0;
                     echequier[5][7]=4;
                 }break;
                 case 2: {
-                    tourRoque=getPion(0);
+                    tourRoque=pions.get(getPion(0));
                     tourRoque.position=3;
                     echequier[0][0]=0;
                     echequier[3][0]=10;
                 }break;
                 case 6: {
-                    tourRoque=getPion(7);
+                    tourRoque=pions.get(getPion(7));
                     tourRoque.position=5;
                     echequier[0][0]=0;
                     echequier[5][0]=10;
@@ -261,8 +267,10 @@ public class Plateau extends Observable {
 
         }
         else {
-            Pion pionMange=getPion(pos);
-            if (pionMange!=null) {
+            int indicePion=getPion(pos);
+            Pion pionMange=null;
+            if (indicePion!=-1) {
+                pionMange=pions.get(indicePion);
                 mange=true;
                 pions.remove(pionMange);
             }
@@ -272,16 +280,20 @@ public class Plateau extends Observable {
         if (pion.type=='p' && echequier[caseDep%8][caseDep/8]==0) {
             if (pion.couleur && echequier[caseDep%8][caseDep/8+1]==7) {
                 echequier[caseDep%8][caseDep/8+1]=0;
-                Pion pionMange=getPion(pos+8);
-                if (pionMange!=null) {
+                int indicePion=getPion(pos+8);
+                Pion pionMange=null;
+                if (indicePion!=-1) {
+                    pionMange=pions.get(indicePion);
                     mange=true;
                     pions.remove(pionMange);
                 }
             }
             if (!pion.couleur && echequier[caseDep%8][caseDep/8-1]==1) {
                 echequier[caseDep%8][caseDep/8-1]=0;
-                Pion pionMange=getPion(pos-8);
-                if (pionMange!=null) {
+                int indicePion=getPion(pos-8);
+                Pion pionMange=null;
+                if (indicePion!=-1) {
+                    pionMange=pions.get(indicePion);
                     mange=true;
                     pions.remove(pionMange);
                 }
@@ -315,11 +327,11 @@ public class Plateau extends Observable {
             nouveauTour(!tour);
     }
 
-    private Pion getPion (int pos) {
+    private int getPion (int pos) {
         for (int i=0;i<pions.size();i++) 
             if (pions.get(i).position==pos)
-                return pions.get(i);
-        return null;
+                return i;
+        return -1;
     }
 
     public Vector <Pion> getPions() {
@@ -343,10 +355,7 @@ public class Plateau extends Observable {
     }
 
     public Vector <Integer> getDepPossiblesPionSelec () {
-        for (int i=0;i<pions.size();i++)
-            if (caseSelec==pions.get(i).position)
-                return depPossibles.get(i);
-        return null;
+        return depPossibles.get(indicePionSelec);
     }
 
     public Vector <int []> getDepPossibles () {
@@ -431,6 +440,10 @@ public class Plateau extends Observable {
                 }
             }
         }
+        return echequier;
+    }
+
+    public int [][] getEchequier () {
         return echequier;
     }
 

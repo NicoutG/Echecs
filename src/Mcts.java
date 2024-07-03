@@ -46,7 +46,7 @@ public class Mcts extends Joueur {
     }
 
     private int [] choixDep () {
-        double bestVictoire=0;
+        double bestVictoire=-1;
         int [] bestCoup=null;
         for (int i=0;i<racine.size();i++) {
             Noeud noeud=racine.get(i);
