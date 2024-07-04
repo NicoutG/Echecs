@@ -1,21 +1,21 @@
 import java.util.Observable;
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class Plateau extends Observable {
-    protected Vector <Pion> pions;
+    protected ArrayList <Pion> pions;
     protected boolean tour;
     protected int ordre;
     protected int caseSelec;
     protected Pion pionSelec;
     protected int indicePionSelec;
-    protected Vector <Vector <Integer>> depPossibles;
+    protected ArrayList <ArrayList <Integer>> depPossibles;
     protected int caseDep;
     protected int [][] echequier;
     protected int victoire;
     protected int coupEgaliteBlanc;
     protected int coupEgaliteNoir;
 
-    protected Vector <int []> config;
+    protected ArrayList <int []> config;
 
     private final int valPion=10;
     private final int valCavalier=30;
@@ -44,7 +44,7 @@ public class Plateau extends Observable {
     }
 
     public void init () {
-        pions=new Vector <Pion> ();
+        pions=new ArrayList <Pion> ();
         pions.add(new Pion(0,false,'t'));
         pions.add(new Pion(1,false,'c'));
         pions.add(new Pion(2,false,'f'));
@@ -73,7 +73,7 @@ public class Plateau extends Observable {
         coupEgaliteNoir=0;
         echequier=genereEchequier(pions);
         victoire=0;
-        config=new Vector <int []> ();
+        config=new ArrayList <int []> ();
         nouveauTour(true);
     }
 
@@ -110,14 +110,14 @@ public class Plateau extends Observable {
             res[0]+=pion.position*val;
         }
 
-        for (Vector <Integer> depPion : depPossibles)
+        for (ArrayList <Integer> depPion : depPossibles)
             res[1]+=depPion.size();
         config.add(0,res);
     }
 
     private void nouveauTour (boolean tourSuivant) {
         // récupération des déplacements possibles
-        depPossibles=new Vector <Vector <Integer>> ();
+        depPossibles=new ArrayList <ArrayList <Integer>> ();
         for (int i=0;i<pions.size();i++)
             depPossibles.add(pions.get(i).getDepPossibles(pions,echequier,caseSelec,caseDep));
         
@@ -132,7 +132,7 @@ public class Plateau extends Observable {
 
     private int evaluationPion (int nb) {
         int res=0;
-        Vector <Integer> depPossiblesPion=depPossibles.get(nb);
+        ArrayList <Integer> depPossiblesPion=depPossibles.get(nb);
         switch (pions.get(nb).type) {
             case 'p': res+=valPion+depPossiblesPion.size()*valDepPion;break;
             case 'c': res+=valCavalier+depPossiblesPion.size()*valDepCavalier;break;
@@ -178,7 +178,7 @@ public class Plateau extends Observable {
         if (victoire==0) {
             if (ordre==1) { // selection du déplacement
                 boolean trouve=false;
-                Vector <Integer> depPossiblesPionSelec=getDepPossiblesPionSelec();
+                ArrayList <Integer> depPossiblesPionSelec=getDepPossiblesPionSelec();
                 int i=0;
                 if (0<depPossiblesPionSelec.size())
                     do {
@@ -301,7 +301,7 @@ public class Plateau extends Observable {
         }
 
         if (pionSelec.type=='p') {
-            config=new Vector <int []> ();
+            config=new ArrayList <int []> ();
             if (tour)
                 coupEgaliteBlanc=0;
             else
@@ -314,7 +314,7 @@ public class Plateau extends Observable {
                 coupEgaliteNoir++;
         }
         else
-            config=new Vector <int []> ();
+            config=new ArrayList <int []> ();
         pion.deplacer++;
         pion.position=pos;
         echequier[caseDep%8][caseDep/8]=echequier[caseSelec%8][caseSelec/8];
@@ -334,7 +334,7 @@ public class Plateau extends Observable {
         return -1;
     }
 
-    public Vector <Pion> getPions() {
+    public ArrayList <Pion> getPions() {
         return pions;
     }
 
@@ -354,20 +354,21 @@ public class Plateau extends Observable {
         return caseDep;
     }
 
-    public Vector <Integer> getDepPossiblesPionSelec () {
+    public ArrayList <Integer> getDepPossiblesPionSelec () {
         return depPossibles.get(indicePionSelec);
     }
 
-    public Vector <int []> getDepPossibles () {
-        Vector <int []> deps=new Vector <int []> ();
-        for (int i=0;i<depPossibles.size();i++) {
-            if (pions.get(i).couleur==tour)
-                for (int j=0;j<depPossibles.get(i).size();j++) {
-                    deps.add(new int [2]);
-                    deps.lastElement()[0]=pions.get(i).position;
-                    deps.lastElement()[1]=depPossibles.get(i).get(j);
-                }
-        }
+    public ArrayList <int []> getDepPossibles () {
+        ArrayList <int []> deps=new ArrayList <int []> ();
+        if (depPossibles!=null)
+            for (int i=0;i<depPossibles.size();i++) {
+                if (pions.get(i).couleur==tour)
+                    for (int j=0;j<depPossibles.get(i).size();j++) {
+                        deps.add(new int [2]);
+                        deps.get(deps.size()-1)[0]=pions.get(i).position;
+                        deps.get(deps.size()-1)[1]=depPossibles.get(i).get(j);
+                    }
+            }
         return deps;
     }
 
@@ -375,7 +376,7 @@ public class Plateau extends Observable {
         return victoire;
     }
 
-    public int echecEtMat (Vector <Pion> pis, int [][] echeq) {
+    public int echecEtMat (ArrayList <Pion> pis, int [][] echeq) {
         boolean depPosJ1=false;
         boolean depPosJ2=false;
         Pion pion=null;
@@ -416,7 +417,7 @@ public class Plateau extends Observable {
         return false;
     }
 
-    private int [][] genereEchequier (Vector <Pion> pions) {
+    private int [][] genereEchequier (ArrayList <Pion> pions) {
         int [][] echequier=new int [8][8];
         for (int i=0;i<pions.size();i++) {
             Pion pion=pions.get(i);
@@ -449,7 +450,7 @@ public class Plateau extends Observable {
 
     protected Plateau clone() {
         Plateau res=new Plateau();
-        res.pions=new Vector <Pion> ();
+        res.pions=new ArrayList <Pion> ();
         for (Pion pion: pions)
             res.pions.add(pion.clone());
         res.tour=tour;
@@ -457,9 +458,9 @@ public class Plateau extends Observable {
         res.caseSelec=caseSelec;
         if (pionSelec!=null)
             res.pionSelec=pionSelec.clone();
-        res.depPossibles=new Vector <Vector <Integer>> ();
+        res.depPossibles=new ArrayList <ArrayList <Integer>> ();
         for (int i=0;i<depPossibles.size();i++) {
-            res.depPossibles.add(new Vector<>());
+            res.depPossibles.add(new ArrayList<>());
             for (int dep : depPossibles.get(i))
                 res.depPossibles.get(i).add(dep);
         }
@@ -470,7 +471,7 @@ public class Plateau extends Observable {
         res.victoire=victoire;
         res.coupEgaliteBlanc=coupEgaliteBlanc;
         res.coupEgaliteNoir=coupEgaliteNoir;
-        res.config=new Vector<int []>();
+        res.config=new ArrayList<int []>();
         for (int i=0;i<config.size();i++) {
             int [] copie=new int [2];
             int [] original=config.get(i);

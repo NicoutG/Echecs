@@ -1,11 +1,11 @@
 import java.util.Random;
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class Noeud {
     private int n;
     private int w;
     private boolean joueur;
-    private Vector<int []> depPossibles;
+    private ArrayList<int []> depPossibles;
     private Plateau plateau;
     private Noeud [] noeuds;
 
@@ -125,7 +125,7 @@ public class Noeud {
     }
 
     private void jouerCoupAleatoire (Plateau plateau) {
-        Vector <int []> deps=plateau.getDepPossibles();
+        ArrayList <int []> deps=plateau.getDepPossibles();
         Random random=new Random();
         int choix=random.nextInt(deps.size());
         plateau.action(deps.get(choix)[0]);
@@ -135,7 +135,7 @@ public class Noeud {
     }
 
     private void jouerCoupSemiAleatoire (Plateau plateau) {
-        Vector <int []> deps=plateau.getDepPossibles();
+        ArrayList <int []> deps=plateau.getDepPossibles();
         for (int i=0;i<deps.size();i++) {
             Plateau plateau2=plateau.clone();
             plateau2.action(deps.get(i)[0]);
@@ -162,9 +162,9 @@ public class Noeud {
 
     private void jouerCoupMinMax (Plateau plateau) {
         int n=3;
-        Vector <int []> deps=plateau.getDepPossibles();
-        Vector <int []> depBest=new Vector <int []> ();
-        Vector <Integer> evaluations=new Vector <Integer> ();
+        ArrayList <int []> deps=plateau.getDepPossibles();
+        ArrayList <int []> depBest=new ArrayList <int []> ();
+        ArrayList <Integer> evaluations=new ArrayList <Integer> ();
         for (int i=0;i<deps.size();i++) {
             Plateau plateau2=plateau.clone();
             plateau2.action(deps.get(i)[0]);

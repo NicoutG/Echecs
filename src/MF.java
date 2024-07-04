@@ -5,6 +5,7 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Observable;
 import javax.swing.ImageIcon;
@@ -27,9 +28,9 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
-    private Joueur joueur1=new AlphaBeta(5);
+    private Joueur joueur1=new AlphaBetaTime(2000);
 
-    private Joueur joueur2=new Humain ();//new Mcts (100,2,Math.sqrt(2));
+    private Joueur joueur2=new AlphaBetaTime(2000);//new Mcts (100,2,Math.sqrt(2));
 
     /**
      * Constructeur de MF
@@ -140,7 +141,7 @@ public class MF extends JFrame implements Observer{
             int x=caseSelec%8;
             int y=caseSelec/8;
             tab[x][y].setBackground(Color.YELLOW);
-            Vector <Integer> dep=plateau.getDepPossiblesPionSelec();
+            ArrayList <Integer> dep=plateau.getDepPossiblesPionSelec();
             for (int i=0;i<dep.size();i++) {
                 x=dep.get(i)%8;
                 y=dep.get(i)/8;
@@ -162,7 +163,7 @@ public class MF extends JFrame implements Observer{
         }
 
         // place les pions
-        Vector <Pion> pions=plateau.getPions();
+        ArrayList <Pion> pions=plateau.getPions();
         Pion pion;
         for (int i=0;i<pions.size();i++) {
             pion=pions.get(i);

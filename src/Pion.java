@@ -1,4 +1,4 @@
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class Pion implements Cloneable {
     public int position;
@@ -13,7 +13,7 @@ public class Pion implements Cloneable {
         deplacer=0;
     }
 
-    public Vector <Integer> getDepPossibles (Vector <Pion> pions, int [][] echequier, int posPrec, int depPrec) {
+    public ArrayList <Integer> getDepPossibles (ArrayList <Pion> pions, int [][] echequier, int posPrec, int depPrec) {
         switch (type) {
             case 'p': return depPion(pions,echequier,posPrec,depPrec);
             case 'c': return depCavalier(pions,echequier);
@@ -22,18 +22,18 @@ public class Pion implements Cloneable {
             case 'q': return depReine(pions,echequier);
             case 'k': return depRoi(pions,echequier);
         }
-        return new Vector <Integer> ();
+        return new ArrayList <Integer> ();
     }
 
-    private Pion getPion (int pos, Vector <Pion> pions) {
+    private Pion getPion (int pos, ArrayList <Pion> pions) {
         for (int i=0;i<pions.size();i++) 
             if (pions.get(i).position==pos)
                 return pions.get(i);
         return null;
     }
 
-    private Vector <Integer> depPion (Vector <Pion> pions, int [][] echequier, int posPrec, int depPrec) {
-        Vector <Integer> res=new Vector <Integer> ();
+    private ArrayList <Integer> depPion (ArrayList <Pion> pions, int [][] echequier, int posPrec, int depPrec) {
+        ArrayList <Integer> res=new ArrayList <Integer> ();
         int x=position%8;
         int depPrendreG;
         int depPrendreD;
@@ -93,8 +93,8 @@ public class Pion implements Cloneable {
         return res;
     }
 
-    private Vector <Integer> depCavalier (Vector <Pion> pions, int [][] echequier) {
-        Vector <Integer> res=new Vector <Integer> ();
+    private ArrayList <Integer> depCavalier (ArrayList <Pion> pions, int [][] echequier) {
+        ArrayList <Integer> res=new ArrayList <Integer> ();
         int x=position%8;
         int dep;
         dep=position-17;
@@ -148,8 +148,8 @@ public class Pion implements Cloneable {
         return res;
     }
 
-    private Vector <Integer> depFou (Vector <Pion> pions, int [][] echequier) {
-        Vector <Integer> res=new Vector <Integer> ();
+    private ArrayList <Integer> depFou (ArrayList <Pion> pions, int [][] echequier) {
+        ArrayList <Integer> res=new ArrayList <Integer> ();
         int x=position%8;
         int y=position/8;
         boolean bloque=false;
@@ -203,8 +203,8 @@ public class Pion implements Cloneable {
         return res;
     }
 
-    private Vector <Integer> depTour (Vector <Pion> pions, int [][] echequier) {
-        Vector <Integer> res=new Vector <Integer> ();
+    private ArrayList <Integer> depTour (ArrayList <Pion> pions, int [][] echequier) {
+        ArrayList <Integer> res=new ArrayList <Integer> ();
         int x=position%8;
         int y=position/8;
         boolean bloque=false;
@@ -254,16 +254,16 @@ public class Pion implements Cloneable {
         return res;
     }
 
-    private Vector <Integer> depReine (Vector <Pion> pions, int [][] echequier) {
-        Vector <Integer> res=depFou(pions, echequier);
-        Vector <Integer> res2=depTour(pions, echequier);
+    private ArrayList <Integer> depReine (ArrayList <Pion> pions, int [][] echequier) {
+        ArrayList <Integer> res=depFou(pions, echequier);
+        ArrayList <Integer> res2=depTour(pions, echequier);
         for (int i=0;i<res2.size();i++)
             res.add(res2.get(i));
         return res;
     }
 
-    private Vector <Integer> depRoi (Vector <Pion> pions, int [][] echequier) {
-        Vector <Integer> res=new Vector <Integer> ();
+    private ArrayList <Integer> depRoi (ArrayList <Pion> pions, int [][] echequier) {
+        ArrayList <Integer> res=new ArrayList <Integer> ();
         int x=position%8;
         int y=position/8;
         int dep, pion;
@@ -356,14 +356,14 @@ public class Pion implements Cloneable {
         return res; 
     }
 
-    private boolean addDep (Vector <Pion> pions, int [][] echequier, int dep, Vector <Integer> deps) {
+    private boolean addDep (ArrayList <Pion> pions, int [][] echequier, int dep, ArrayList <Integer> deps) {
         boolean autor=depAutorise( pions,echequier,dep);
         if (autor)
             deps.add(dep);
         return autor;
     }
 
-    public boolean depAutorise (Vector <Pion> pions, int [][] echequier, int dep) {
+    public boolean depAutorise (ArrayList <Pion> pions, int [][] echequier, int dep) {
         int [][] echequierDep=new int [8][8];
         for (int i=0;i<8;i++)
             for (int j=0;j<8;j++)
@@ -382,7 +382,7 @@ public class Pion implements Cloneable {
         return !echec(pions, echequierDep, couleur);
     }
 
-    public boolean echec (Vector <Pion> pions, int [][] echequier, boolean couleurRoi) {
+    public boolean echec (ArrayList <Pion> pions, int [][] echequier, boolean couleurRoi) {
         boolean trouve=false;
         int k=0, x=0, y=0, val;
         while (k<64 && !trouve) {
