@@ -16,19 +16,21 @@ public class AlphaBeta extends Joueur{
     }
 
     public void jouer (Plateau plateau) {
-        begin=System.currentTimeMillis();
-        int [] res=simuler(plateau, profondeur,-9999,9999);
-        if (res[1]!=-1) {
-            plateau.action(res[1]);
-            plateau.action(res[2]);
-            if (plateau.getOrdre()==3)
-                plateau.action(67);
+        if (plateau.getVictoire()==0) {
+            begin=System.currentTimeMillis();
+            int [] res=simuler(plateau, profondeur,-9999,9999);
+            if (res[1]!=-1) {
+                plateau.action(res[1]);
+                plateau.action(res[2]);
+                if (plateau.getOrdre()==3)
+                    plateau.action(67);
+            }
         }
     }
 
     public int [] simuler (Plateau plateau, int reste, int alpha, int beta) {
         int [] res=new int [3];
-        if (reste>0 || plateau.getVictoire()!=0) {
+        if (reste>0 && plateau.getVictoire()==0) {
             if (System.currentTimeMillis()-begin<time) {
                 ArrayList <int []> vals=new ArrayList <int []> ();
                 ArrayList <int []> depPossibles=triDepPossibles(plateau);
