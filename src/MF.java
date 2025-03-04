@@ -28,13 +28,12 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
-    private Joueur joueur1=new AlphaBetaTime(2000);
+    private Joueur joueur1=new Humain();
 
-    private Joueur joueur2=new Humain ();//new Mcts (100,2,Math.sqrt(2));
+    private Joueur joueur2=new AlphaBetaTime(2000);//new Mcts (100,2,Math.sqrt(2));
 
     /**
      * Constructeur de MF
-     * @param niv le niveau actuel
      */
     public MF (Plateau plat) {
         // Construit l'interface graphique
