@@ -325,7 +325,7 @@ public class BitBoardEchecs {
 
     private static long getRoiDep(int pos, long toursJoueur, long piecesJoueur, long pieces, long speciaux, boolean couleurJoueur) {
         long bitboard = toBitBoard(pos);
-        return (getRoiDep(pos) & ~piecesJoueur) | getRoque(toursJoueur, bitboard, speciaux, pieces, couleurJoueur);
+        return (getRoiDep(pos) & ~piecesJoueur) | getRoque(toursJoueur, bitboard, pieces, speciaux, couleurJoueur);
     }
 
     //#endregion
@@ -637,7 +637,7 @@ public class BitBoardEchecs {
                         noirsCopy = (noirsCopy | 0x0400000000000000L) & ~0x0100000000000000L;
                     speciauxCopy &= ~0x0100000000000000L;
                 }break;
-                case 46: {
+                case 58: {
                     toursCopy = (toursCopy | 0x0000000000000010L) & ~0x0000000000000080L;
                     if (couleurJoueur)
                         blancsCopy = (blancsCopy | 0x0000000000000010L) & ~0x0000000000000080L;
@@ -645,7 +645,7 @@ public class BitBoardEchecs {
                         noirsCopy = (noirsCopy | 0x0000000000000010L) & ~0x0000000000000080L;
                     speciauxCopy &= ~0x0000000000000080L;
                 }break;
-                case 63: {
+                case 62: {
                     toursCopy = (toursCopy | 0x0000000000000004L) & ~0x0000000000000001L;
                     if (couleurJoueur)
                         blancsCopy = (blancsCopy | 0x0000000000000004L) & ~0x0000000000000001L;

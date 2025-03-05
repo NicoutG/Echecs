@@ -6,15 +6,15 @@ public class Noeud {
     private int w;
     private boolean joueur;
     private ArrayList<int []> depPossibles;
-    private Plateau plateau;
+    private Echecs echecs;
     private Noeud [] noeuds;
 
-    public Noeud (Plateau plateau, boolean joueur) {
+    public Noeud (Echecs echecs, boolean joueur) {
         n=0;
         w=0;
         this.joueur=joueur;
-        this.plateau=plateau;
-        depPossibles=plateau.getDepPossibles();
+        this.echecs=echecs;
+        depPossibles=echecs.getAllDepPossibles();
         noeuds=new Noeud[depPossibles.size()];
         for (int i=0;i<noeuds.length;i++)
             noeuds[i]=null;
@@ -50,13 +50,13 @@ public class Noeud {
                 return noeuds[index];
             
             int [] dep=depPossibles.get(index);
-            Plateau plateau2=plateau.clone();
-            plateau2.action(dep[0]);
-            plateau2.action(dep[1]);
-            if (plateau2.getOrdre()==3)
-                plateau2.action(67);
+            Echecs echecs2=echecs.clone();
+            echecs2.action(dep[0]);
+            echecs2.action(dep[1]);
+            if (echecs2.getOrdre()==2)
+                echecs2.action(67);
             
-            noeuds[index]=new Noeud(plateau2, joueur);
+            noeuds[index]=new Noeud(echecs2, joueur);
             return noeuds[index];
         }
         return null;
@@ -104,80 +104,80 @@ public class Noeud {
         n+=nbSimulations;
         int res=0;
         for (int i=0;i<nbSimulations;i++) {
-            Plateau plateau2=plateau.clone();
-            res+=jouer(plateau2);
+            Echecs echecs2=echecs.clone();
+            res+=jouer(echecs2);
         }
         w+=res;
         return res;
     }
 
-    private int jouer (Plateau plateau) {
-        if (plateau.getVictoire()==0) {
-            jouerCoupMinMax(plateau);
-            return jouer(plateau);
+    private int jouer (Echecs echecs) {
+        if (echecs.getVictoire()==0) {
+            jouerCoupMinMax(echecs);
+            return jouer(echecs);
         }
         else {
-            if ((plateau.getVictoire()==1 && joueur) || (plateau.getVictoire()==2 && !joueur))
+            if ((echecs.getVictoire()==1 && joueur) || (echecs.getVictoire()==2 && !joueur))
                 return 1;
             else
                 return 0;
         }
     }
 
-    private void jouerCoupAleatoire (Plateau plateau) {
-        ArrayList <int []> deps=plateau.getDepPossibles();
+    private void jouerCoupAleatoire (Echecs echecs) {
+        ArrayList <int []> deps=echecs.getAllDepPossibles();
         Random random=new Random();
         int choix=random.nextInt(deps.size());
-        plateau.action(deps.get(choix)[0]);
-        plateau.action(deps.get(choix)[1]);
-        if (plateau.getOrdre()==3)
-                plateau.action(67);
+        echecs.action(deps.get(choix)[0]);
+        echecs.action(deps.get(choix)[1]);
+        if (echecs.getOrdre()==2)
+                echecs.action(67);
     }
 
-    private void jouerCoupSemiAleatoire (Plateau plateau) {
-        ArrayList <int []> deps=plateau.getDepPossibles();
+    private void jouerCoupSemiAleatoire (Echecs echecs) {
+        ArrayList <int []> deps=echecs.getAllDepPossibles();
         for (int i=0;i<deps.size();i++) {
-            Plateau plateau2=plateau.clone();
-            plateau2.action(deps.get(i)[0]);
-            plateau2.action(deps.get(i)[1]);
-            if (plateau2.getOrdre()==3)
-                    plateau2.action(67);
+            Echecs echecs2=echecs.clone();
+            echecs2.action(deps.get(i)[0]);
+            echecs2.action(deps.get(i)[1]);
+            if (echecs2.getOrdre()==2)
+                echecs2.action(67);
             
-            if (plateau2.getVictoire()==1 || plateau2.getVictoire()==2) {
-                plateau.action(deps.get(i)[0]);
-                plateau.action(deps.get(i)[1]);
-                if (plateau.getOrdre()==3)
-                    plateau.action(67);
+            if (echecs2.getVictoire()==1 || echecs2.getVictoire()==2) {
+                echecs.action(deps.get(i)[0]);
+                echecs.action(deps.get(i)[1]);
+                if (echecs.getOrdre()==2)
+                    echecs.action(67);
                 return ;
             }
 
         }
         Random random=new Random();
         int choix=random.nextInt(deps.size());
-        plateau.action(deps.get(choix)[0]);
-        plateau.action(deps.get(choix)[1]);
-        if (plateau.getOrdre()==3)
-                plateau.action(67);
+        echecs.action(deps.get(choix)[0]);
+        echecs.action(deps.get(choix)[1]);
+        if (echecs.getOrdre()==2)
+                echecs.action(67);
     }
 
-    private void jouerCoupMinMax (Plateau plateau) {
+    private void jouerCoupMinMax (Echecs echecs) {
         int n=3;
-        ArrayList <int []> deps=plateau.getDepPossibles();
+        ArrayList <int []> deps=echecs.getAllDepPossibles();
         ArrayList <int []> depBest=new ArrayList <int []> ();
-        ArrayList <Integer> evaluations=new ArrayList <Integer> ();
+        ArrayList <Double> evaluations=new ArrayList <> ();
         for (int i=0;i<deps.size();i++) {
-            Plateau plateau2=plateau.clone();
-            plateau2.action(deps.get(i)[0]);
-            plateau2.action(deps.get(i)[1]);
-            int evaluation=plateau2.evaluation();
-            if (evaluation==1000 || evaluation==-1000) {
-                plateau.action(deps.get(i)[0]);
-                plateau.action(deps.get(i)[1]);
-                if (plateau.getOrdre()==3)
-                    plateau.action(67);
+            Echecs echecs2=echecs.clone();
+            echecs2.action(deps.get(i)[0]);
+            echecs2.action(deps.get(i)[1]);
+            double evaluation=echecs2.evaluation();
+            if (evaluation>=1000 || evaluation<=-1000) {
+                echecs.action(deps.get(i)[0]);
+                echecs.action(deps.get(i)[1]);
+                if (echecs.getOrdre()==2)
+                    echecs.action(67);
                 return ;
             }
-            if (!plateau.getTour())
+            if (!echecs.getTour())
                 evaluation*=-1;
             if (depBest.size()==0) {
                 depBest.add(deps.get(i));
@@ -204,9 +204,9 @@ public class Noeud {
         }
         Random random=new Random();
         int choix=random.nextInt(depBest.size());
-        plateau.action(depBest.get(choix)[0]);
-        plateau.action(depBest.get(choix)[1]);
-        if (plateau.getOrdre()==3)
-                plateau.action(67);
+        echecs.action(depBest.get(choix)[0]);
+        echecs.action(depBest.get(choix)[1]);
+        if (echecs.getOrdre()==2)
+                echecs.action(67);
     }
 }

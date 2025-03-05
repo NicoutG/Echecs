@@ -20,7 +20,7 @@ import java.awt.GridLayout;
 
 public class MF extends JFrame implements Observer{
     
-    private Plateau plateau;
+    private Echecs echecs;
 
     private JButton tab [][] = null;
 
@@ -28,17 +28,17 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
-    private Joueur joueur1=new Humain();
+    private Joueur joueur1 = new AlphaBetaTime(2000);
 
-    private Joueur joueur2=new AlphaBetaTime(2000);//new Mcts (100,2,Math.sqrt(2));
+    private Joueur joueur2 = new Humain();//new Mcts (100,2,Math.sqrt(2));
 
     /**
      * Constructeur de MF
      */
-    public MF (Plateau plat) {
+    public MF (Echecs eche) {
         // Construit l'interface graphique
         build();
-        plateau=plat;
+        echecs = eche;
     }
 
     /**
@@ -67,8 +67,8 @@ public class MF extends JFrame implements Observer{
                 tab[i][j]=new JButton();
                 final int nb=i+8*j;
                 tab[i][j].addActionListener(e -> {
-                    if ((plateau.getTour() && joueur1 instanceof Humain) || (!plateau.getTour() && joueur2 instanceof Humain)) {
-                        plateau.action(nb);
+                    if ((echecs.getTour() && joueur1 instanceof Humain) || (!echecs.getTour() && joueur2 instanceof Humain)) {
+                        echecs.action(nb);
                         requestFocusInWindow();
                     }
                 });
@@ -86,8 +86,8 @@ public class MF extends JFrame implements Observer{
             changePion[i]=new JButton();
                 final int nb=64+i;
                 changePion[i].addActionListener(e -> {
-                    if ((plateau.getTour() && joueur1 instanceof Humain) || (!plateau.getTour() && joueur2 instanceof Humain)) {
-                        plateau.action(nb);
+                    if ((echecs.getTour() && joueur1 instanceof Humain) || (!echecs.getTour() && joueur2 instanceof Humain)) {
+                        echecs.action(nb);
                         requestFocusInWindow();
                     }
                 });
@@ -135,26 +135,26 @@ public class MF extends JFrame implements Observer{
                 else
                     tab[i][j].setBackground(Color.WHITE);
             }
-        if (plateau.getOrdre()==1) {
-            int caseSelec=plateau.getCaseSelec();
+        if (echecs.getOrdre()==1) {
+            int caseSelec=echecs.getCasePos();
             int x=caseSelec%8;
             int y=caseSelec/8;
             tab[x][y].setBackground(Color.YELLOW);
-            ArrayList <Integer> dep=plateau.getDepPossiblesPionSelec();
-            for (int i=0;i<dep.size();i++) {
-                x=dep.get(i)%8;
-                y=dep.get(i)/8;
+            int[] dep=echecs.getDepPossibles();
+            for (int i=0;i<dep.length;i++) {
+                x=dep[i]%8;
+                y=dep[i]/8;
                 tab[x][y].setBackground(Color.RED);
             }
         }
         else {
             
-            int caseDep=plateau.getCaseDep();
+            int caseDep=echecs.getCaseDep();
             if (caseDep>=0) {
                 int x=caseDep%8;
                 int y=caseDep/8;
                 tab[x][y].setBackground(Color.YELLOW);
-                int caseSelec=plateau.getCaseSelec();
+                int caseSelec=echecs.getCasePos();
                 x=caseSelec%8;
                 y=caseSelec/8;
                 tab[x][y].setBackground(Color.YELLOW);
@@ -162,23 +162,30 @@ public class MF extends JFrame implements Observer{
         }
 
         // place les pions
-        ArrayList <Pion> pions=plateau.getPions();
-        Pion pion;
-        for (int i=0;i<pions.size();i++) {
-            pion=pions.get(i);
-            int x=pion.position%8;
-            int y=pion.position/8;
-            if (pion.couleur)
-                tab[x][y].setIcon(images.get("b"+pion.type+".png"));
-            else
-                tab[x][y].setIcon(images.get("n"+pion.type+".png"));
-        }
+        int[][] plateau = echecs.getPlateau();
+        for (int x = 0; x < plateau.length; x++)
+            for (int y = 0; y < plateau[x].length; y++) {
+                switch(plateau[x][y]) {
+                    case 1: tab[x][y].setIcon(images.get("bp.png"));break;
+                    case 2: tab[x][y].setIcon(images.get("bc.png"));break;
+                    case 3: tab[x][y].setIcon(images.get("bf.png"));break;
+                    case 4: tab[x][y].setIcon(images.get("bt.png"));break;
+                    case 5: tab[x][y].setIcon(images.get("bq.png"));break;
+                    case 6: tab[x][y].setIcon(images.get("bk.png"));break;
+                    case 7: tab[x][y].setIcon(images.get("np.png"));break;
+                    case 8: tab[x][y].setIcon(images.get("nc.png"));break;
+                    case 9: tab[x][y].setIcon(images.get("nf.png"));break;
+                    case 10: tab[x][y].setIcon(images.get("nt.png"));break;
+                    case 11: tab[x][y].setIcon(images.get("nq.png"));break;
+                    case 12: tab[x][y].setIcon(images.get("nk.png"));break;
+                }
+            }
 
-        if (plateau.getOrdre()==3) {
+        if (echecs.getOrdre()==2) {
             for (int i=0;i<4;i++) {
                 changePion[i].setVisible(true);
             }
-            if (plateau.getTour()) {
+            if (echecs.getTour()) {
                 changePion[0].setIcon(images.get("bc.png"));
                 changePion[1].setIcon(images.get("bf.png"));
                 changePion[2].setIcon(images.get("bt.png"));
@@ -196,26 +203,27 @@ public class MF extends JFrame implements Observer{
                 changePion[i].setVisible(false);
         }
 
-        switch (plateau.getVictoire()) {
+        switch (echecs.getVictoire()) {
             case 1: System.out.println("Victoire des blancs");break;
             case 2: System.out.println("Victoire des noirs");break;
             case 3: System.out.println("Egalité");break;
         }
-        if (plateau.getOrdre()==0) {
+        if (echecs.getOrdre()==0) {
             // évaluation
-            int eval=plateau.evaluation();
-            if (Math.abs(eval)<=30)
+            double eval=echecs.evaluation();
+            double seuil = 30;
+            if (Math.abs(eval) <= seuil)
                 System.out.println("Evaluation : "+eval+" (égalité)");
             else
-                if (eval>30)
+                if (eval > seuil)
                     System.out.println("Evaluation : "+eval+" (avantage Blanc)");
                 else
                     System.out.println("Evaluation : "+eval+" (avantage Noir)");
             
-            if (plateau.getTour())
-                joueur1.jouer(plateau);
+            if (echecs.getTour())
+                joueur1.jouer(echecs);
             else
-                joueur2.jouer(plateau);
+                joueur2.jouer(echecs);
         }
     }
 }

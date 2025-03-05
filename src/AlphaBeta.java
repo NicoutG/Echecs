@@ -15,35 +15,35 @@ public class AlphaBeta extends Joueur{
         this.time=time;
     }
 
-    public void jouer (Plateau plateau) {
-        if (plateau.getVictoire()==0) {
+    public void jouer (Echecs echecs) {
+        if (echecs.getVictoire()==0) {
             begin=System.currentTimeMillis();
-            int [] res=simuler(plateau, profondeur,-9999,9999);
+            double[] res=simuler(echecs, profondeur,-9999,9999);
             if (res[1]!=-1) {
-                plateau.action(res[1]);
-                plateau.action(res[2]);
-                if (plateau.getOrdre()==3)
-                    plateau.action(67);
+                echecs.action((int)res[1]);
+                echecs.action((int)res[2]);
+                if (echecs.getOrdre()==2)
+                    echecs.action(67);
             }
         }
     }
 
-    public int [] simuler (Plateau plateau, int reste, int alpha, int beta) {
-        int [] res=new int [3];
-        if (reste>0 && plateau.getVictoire()==0) {
+    public double[] simuler (Echecs echecs, int reste, double alpha, double beta) {
+        double[] res=new double [3];
+        if (reste>0 && echecs.getVictoire()==0) {
             if (System.currentTimeMillis()-begin<time) {
-                ArrayList <int []> vals=new ArrayList <int []> ();
-                ArrayList <int []> depPossibles=triDepPossibles(plateau);
+                ArrayList <double[]> vals=new ArrayList <> ();
+                ArrayList <int []> depPossibles=triDepPossibles(echecs);
                 for (int i=0;i<depPossibles.size();i++) {
-                    Plateau plateau2=plateau.clone();
-                    plateau2.action(depPossibles.get(i)[0]);
-                    plateau2.action(depPossibles.get(i)[1]);
-                    if (plateau2.getOrdre()==3)
-                        plateau2.action(67);
-                    res=simuler(plateau2,reste-1,alpha,beta);
+                    Echecs echecs2=echecs.clone();
+                    echecs2.action(depPossibles.get(i)[0]);
+                    echecs2.action(depPossibles.get(i)[1]);
+                    if (echecs2.getOrdre()==2)
+                        echecs2.action(67);
+                    res=simuler(echecs2,reste-1,alpha,beta);
                     res[1]=depPossibles.get(i)[0];
                     res[2]=depPossibles.get(i)[1];
-                    if (!plateau.getTour()) {
+                    if (!echecs.getTour()) {
                         if (alpha>=res[0])
                             return res;
                         beta=Math.min(beta,res[0]);
@@ -62,7 +62,7 @@ public class AlphaBeta extends Joueur{
                     vals.remove(0);
                     int size=vals.size();
                     for (int i=0;i<size;i++) {
-                        if ((plateau.getTour() && vals.get(0)[0]>res[0]) || (!plateau.getTour() && vals.get(0)[0]<res[0]))
+                        if ((echecs.getTour() && vals.get(0)[0]>res[0]) || (!echecs.getTour() && vals.get(0)[0]<res[0]))
                             res=vals.get(0);
                         vals.remove(0);
                     }
@@ -70,7 +70,7 @@ public class AlphaBeta extends Joueur{
                 }
             }
         }
-        res[0]=plateau.evaluation();
+        res[0]=echecs.evaluation();
         res[1]=-1;
         res[2]=-1;
         return res;
@@ -80,52 +80,29 @@ public class AlphaBeta extends Joueur{
         this.begin=begin;
     }
 
-    private ArrayList <int []> triDepPossibles (Plateau plateau) {
-        ArrayList <int []> depPossibles=plateau.getDepPossibles();
+    private ArrayList <int []> triDepPossibles (Echecs echecs) {
+        ArrayList <int []> depPossibles=echecs.getAllDepPossibles();
         ArrayList <int []> tri=new ArrayList <int []> ();
-        ArrayList <Integer> values=new ArrayList <Integer> ();
-        int [][] echequier=plateau.getEchequier();
+        ArrayList <Double> values=new ArrayList<>();
+        int [][] echequier=echecs.getPlateau();
         if (depPossibles!=null) {
             for (int i=0;i<depPossibles.size();i++) {
                 int caseSelec=depPossibles.get(i)[0];
                 int caseDep=depPossibles.get(i)[1];
-                int valSelec=0;
-                int valDep=0;
-                int value=0;
-                if (echequier[caseDep%8][caseDep/8]!=0) {
-                    switch ((echequier[caseSelec%8][caseSelec/8]-1)%6) {
-                        case 0: valSelec=1;break;
-                        case 1: valSelec=3;break;
-                        case 2: valSelec=3;break;
-                        case 3: valSelec=5;break;
-                        case 4: valSelec=9;break;
-                        case 5: valSelec=10;break;
-                    }
-                    switch ((echequier[caseDep%8][caseDep/8]-1)%6) {
-                        case 0: valDep=100;break;
-                        case 1: valDep=300;break;
-                        case 2: valDep=300;break;
-                        case 3: valDep=500;break;
-                        case 4: valDep=900;break;
-                        case 5: valDep=1000;break;
-                    }
-                    value=valDep-valSelec;
-                }
-                else
-                    value=0;
+                double value = Evaluation.evaluationCoup(caseSelec, caseDep, echequier);
                 insert(tri,values,depPossibles.get(i),value);
             }
         }
         return tri;
     }
 
-    private void insert (ArrayList <int []> tri, ArrayList <Integer> values, int [] dep, int value) {
+    private void insert (ArrayList <int []> tri, ArrayList <Double> values, int [] dep, double value) {
         int indice=getIndice(values, value);
         values.add(indice,value);
         tri.add(indice,dep);
     }
 
-    private int getIndice (ArrayList <Integer> values, int value) {
+    private int getIndice (ArrayList <Double> values, double value) {
         int longueur=values.size();
         if (longueur==0 || value>=values.get(0))
             return 0;

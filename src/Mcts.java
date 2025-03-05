@@ -22,24 +22,24 @@ public class Mcts extends Joueur {
         racine=null;
     }
 
-    public void jouer (Plateau plateau) {
-        if (plateau.getVictoire()==0) {
-            creerArbre(plateau);
+    public void jouer (Echecs echecs) {
+        if (echecs.getVictoire()==0) {
+            creerArbre(echecs);
             int [] dep=choixDep();
             if (dep==null)
                 System.out.println("Aucun déplacement possible");
             else {
-                plateau.action(dep[0]);
-                plateau.action(dep[1]);
-                if (plateau.getOrdre()==3)
-                    plateau.action(67);
+                echecs.action(dep[0]);
+                echecs.action(dep[1]);
+                if (echecs.getOrdre()==2)
+                    echecs.action(67);
             }
         }
     }
 
-    private void creerArbre (Plateau plateau) {
-        Plateau plateau2=plateau.clone();
-        racine=new Noeud(plateau2,plateau2.getTour());
+    private void creerArbre (Echecs echecs) {
+        Echecs echecs2=echecs.clone();
+        racine=new Noeud(echecs2,echecs2.getTour());
         for (int i=0;i<nbSelections;i++) {
             racine.selection(c, nbSimulations);
         }   
