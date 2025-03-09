@@ -39,7 +39,7 @@ public class Echecs extends Observable {
         tours = echecs.tours;
         reines = echecs.reines;
         rois = echecs.rois;
-        coupsPrecedents = (HashMap<Long,Integer>)(echecs.coupsPrecedents).clone();
+        coupsPrecedents = new HashMap<>(echecs.coupsPrecedents);
         nbCoupsNuls = echecs.nbCoupsNuls;
     }
 
@@ -116,6 +116,10 @@ public class Echecs extends Observable {
         return BitBoardEchecs.getPositions(deps);
     }
 
+    public int[] getPrisesPossibles(int pos) {
+        return BitBoardEchecs.getPositions(BitBoardEchecs.getPrises(pos, blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois, tour));
+    }
+
     public boolean action (int nb) {
         if (victoire==0) {
             switch (ordre) {
@@ -183,8 +187,10 @@ public class Echecs extends Observable {
     public void deplacerPieces(int pos, int dep) {
         long[] afterMove = BitBoardEchecs.move(pos,dep,blancs,noirs,speciaux,pions,cavaliers,fous,tours,reines,rois,tour);
 
-        if (pions != afterMove[3] || BitBoardEchecs.countPieces(blancs) != BitBoardEchecs.countPieces(afterMove[0]) || BitBoardEchecs.countPieces(noirs) != BitBoardEchecs.countPieces(afterMove[1]))
+        if (pions != afterMove[3] || BitBoardEchecs.countPieces(blancs) != BitBoardEchecs.countPieces(afterMove[0]) || BitBoardEchecs.countPieces(noirs) != BitBoardEchecs.countPieces(afterMove[1])) {
             nbCoupsNuls = -1;
+            coupsPrecedents.clear();
+        }
             
         blancs = afterMove[0];
         noirs = afterMove[1];
@@ -295,12 +301,49 @@ public class Echecs extends Observable {
         return plateau;
     }
 
-    public long genererHash() {
-        long hash = blancs + noirs + pions + cavaliers + fous + tours + reines + rois + speciaux + (tour ? 1 : 0);
-        return hash;
+    public long generatePlateau() {
+        return blancs + noirs + pions + cavaliers + fous + tours + reines + rois + speciaux;
+    }
+
+    private long genererHash() {
+        return generatePlateau() + (tour ? 1 : 0);
     }
 
     public double getAvancement() {
         return Evaluation.getAvancement(blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois);
+    }
+
+    public int[] getActions() {
+        switch(ordre) {
+            case 0: {
+                if (tour)
+                    return BitBoardEchecs.getPositions(blancs);
+                return BitBoardEchecs.getPositions(noirs);
+            }
+            case 1: return BitBoardEchecs.getPositions(deps);
+            case 2: return new int[] {64,65,66,67};
+        }
+        return null;
+    }
+
+    public int getPiece(int pos) {
+        long bitboard = BitBoardEchecs.toBitBoard(pos);
+        if ((bitboard & pions) != 0)
+            return 1;
+        if ((bitboard & cavaliers) != 0)
+            return 2;
+        if ((bitboard & fous) != 0)
+            return 3;
+        if ((bitboard & tours) != 0)
+            return 4;
+        if ((bitboard & reines) != 0)
+            return 5;
+        if ((bitboard & rois) != 0)
+            return 6;
+        return 0;
+    }
+
+    public boolean enPrise(int pos) {
+        return BitBoardEchecs.IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, tour);
     }
 }

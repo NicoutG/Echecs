@@ -31,7 +31,7 @@ public class Noeud {
     }
 
     public int [] getDep (int index) {
-        if (0<=index && index<size())
+        if (0<=index && index<depPossibles.size())
             return depPossibles.get(index);
         return null;
     }
@@ -63,7 +63,7 @@ public class Noeud {
     }
 
     private double uct (double c, int w, int n, int N) {
-        return 1.0*w/n+c*Math.sqrt(Math.log(w)/n);
+        return 1.0*w/n+c*Math.sqrt(Math.log(N)/n);
     }
 
     private boolean isFeuille () {
@@ -113,7 +113,7 @@ public class Noeud {
 
     private int jouer (Echecs echecs) {
         if (echecs.getVictoire()==0) {
-            jouerCoupMinMax(echecs);
+            jouerCoupSemiAleatoire(echecs);
             return jouer(echecs);
         }
         else {

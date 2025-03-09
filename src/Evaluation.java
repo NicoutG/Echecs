@@ -146,11 +146,13 @@ public class Evaluation {
         
         double materielNoirs = evaluationPiecesCouleur(pionsNoirs, cavaliersNoirs, fousNoirs, toursNoirs, reinesNoirs);
         
-        double avance = (materielBlancs + materielNoirs) / evaluationMaterielDepart();
-        double positionsBlancs = evaluationPositions(pionsBlancs, cavaliersBlancs, fousBlancs, toursBlancs, reinesBlancs, roisBlancs, true, avance);
-        double positionsNoirs = evaluationPositions(pionsNoirs, cavaliersNoirs, fousNoirs, toursNoirs, reinesNoirs, roisNoirs, false, avance);
+        double avancement = 1 - (materielBlancs + materielNoirs) / evaluationMaterielDepart();
+        double positionsBlancs = evaluationPositions(pionsBlancs, cavaliersBlancs, fousBlancs, toursBlancs, reinesBlancs, roisBlancs, true, avancement);
+        double positionsNoirs = evaluationPositions(pionsNoirs, cavaliersNoirs, fousNoirs, toursNoirs, reinesNoirs, roisNoirs, false, avancement);
     
         double val = materielBlancs - materielNoirs + 0.1 * (positionsBlancs - positionsNoirs);
+
+        val += evaluationRoisFin(roisBlancs, roisNoirs, avancement, (materielBlancs > materielNoirs));
 
         return val;
     }
@@ -199,20 +201,30 @@ public class Evaluation {
 
     public static double evaluationPosition(int pos, int type, double avance) {
         switch (type) {
-            case 1: return avance * pionsTableDeb[pos] + (1 - avance) * pionsTableFin[pos];
-            case 2: return avance * cavaliersTableDeb[pos] + (1 - avance) * cavaliersTableFin[pos];
-            case 3: return avance * fousTableDeb[pos] + (1 - avance) * fousTableFin[pos];
-            case 4: return avance * toursTableDeb[pos] + (1 - avance) * toursTableFin[pos];
-            case 5: return avance * reinesTableDeb[pos] + (1 - avance) * reinesTableFin[pos];
-            case 6: return avance * roisTableDeb[pos] + (1 - avance) * roisTableFin[pos];
-            case 7: return avance * pionsTableDeb[63 - pos] + (1 - avance) * pionsTableFin[63 - pos];
-            case 8: return avance * cavaliersTableDeb[63 - pos] + (1 - avance) * cavaliersTableFin[63 - pos];
-            case 9: return avance * fousTableDeb[63 - pos] + (1 - avance) * fousTableFin[63 - pos];
-            case 10: return avance * toursTableDeb[63 - pos] + (1 - avance) * toursTableFin[63 - pos];
-            case 11: return avance * reinesTableDeb[63 - pos] + (1 - avance) * reinesTableFin[63 - pos];
-            case 12: return avance * roisTableDeb[63 - pos] + (1 - avance) * roisTableFin[63 - pos];
+            case 1: return (1 - avance) * pionsTableDeb[pos] + avance * pionsTableFin[pos];
+            case 2: return (1 - avance) * cavaliersTableDeb[pos] + avance * cavaliersTableFin[pos];
+            case 3: return (1 - avance) * fousTableDeb[pos] + avance * fousTableFin[pos];
+            case 4: return (1 - avance) * toursTableDeb[pos] + avance * toursTableFin[pos];
+            case 5: return (1 - avance) * reinesTableDeb[pos] + avance * reinesTableFin[pos];
+            case 6: return (1 - avance) * roisTableDeb[pos] + avance * roisTableFin[pos];
+            case 7: return (1 - avance) * pionsTableDeb[63 - pos] + avance * pionsTableFin[63 - pos];
+            case 8: return (1 - avance) * cavaliersTableDeb[63 - pos] + avance * cavaliersTableFin[63 - pos];
+            case 9: return (1 - avance) * fousTableDeb[63 - pos] + avance * fousTableFin[63 - pos];
+            case 10: return (1 - avance) * toursTableDeb[63 - pos] + avance * toursTableFin[63 - pos];
+            case 11: return (1 - avance) * reinesTableDeb[63 - pos] + avance * reinesTableFin[63 - pos];
+            case 12: return (1 - avance) * roisTableDeb[63 - pos] + avance * roisTableFin[63 - pos];
         }
         return 0;
+    }
+
+    public static double evaluationRoisFin(long roisBlancs, long roisNoirs, double avancement, boolean couleurAvantage) {
+        int posBlancs = BitBoardEchecs.toPosition(roisBlancs);
+        int posNoirs = BitBoardEchecs.toPosition(roisNoirs);
+        int dif = Math.max(Math.abs(posBlancs/8 - posNoirs/8), Math.abs(posBlancs%8 - posNoirs%8));
+
+        if (couleurAvantage)
+            return avancement * (7 - dif);
+        return -avancement * (7 - dif);
     }
 
     public static double evaluationCoup(int pos, int dep, int[][] plateau) {
@@ -262,5 +274,71 @@ public class Evaluation {
         double materielDepart = evaluationMaterielDepart();
 
         return 1 - (materielBlancs + materielNoirs) / materielDepart;
+    }
+
+    public static double evaluationAction(Echecs echecs, int action) {
+        double value = 0;
+        switch (echecs.getOrdre()) {
+            case 0: {
+                switch (echecs.getPiece(action)) {
+                    case 1: value = 1;break;
+                    case 2: value = 2;break;
+                    case 3: value = 3;break;
+                    case 4: value = 4;break;
+                    case 5: value = 5;break;
+                    case 6: value = 2;break;
+                }
+            }break;
+            case 1: {
+                value  = Evaluation.evaluationCoup(echecs.getCasePos(), action, echecs.getPlateau());
+            }break;
+            case 2: {
+                switch (action) {
+                    case 64: value = 3;break;
+                    case 65: value = 1;break;
+                    case 66: value = 2;break;
+                    case 67: value = 4;break;
+                }
+            }break;
+        }
+        return value;
+    }
+
+    public static double evaluationAction2(Echecs echecs, int action) {
+        double value = 0;
+        switch (echecs.getOrdre()) {
+            case 0: {
+                double avancement = echecs.getAvancement();
+                switch (echecs.getPiece(action)) {
+                    case 1: value = 1;break;
+                    case 2: value = 2;break;
+                    case 3: value = 3;break;
+                    case 4: value = 4;break;
+                    case 5: value = 5;break;
+                    case 6: value = 2;break;
+                }
+                if (echecs.enPrise(action))
+                    value += 10;
+            }break;
+            case 1: {
+                switch (echecs.getPiece(action)) {
+                    case 1: value = valPion;break;
+                    case 2: value = valCavalier;break;
+                    case 3: value = valFou;break;
+                    case 4: value = valTour;break;
+                    case 5: value = valReine;break;
+                    case 6: value = valRoi;break;
+                }
+            }break;
+            case 2: {
+                switch (action) {
+                    case 64: value = 3;break;
+                    case 65: value = 1;break;
+                    case 66: value = 2;break;
+                    case 67: value = 4;break;
+                }
+            }break;
+        }
+        return value;
     }
 }

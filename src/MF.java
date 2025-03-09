@@ -28,9 +28,11 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
-    private Joueur joueur1 = new AlphaBetaTime(2000);
+    private Joueur joueur1 = new AlphaBetaTime2(2000);
 
-    private Joueur joueur2 = new Humain();//new Mcts (100,2,Math.sqrt(2));
+    private Joueur joueur2 = new Humain();
+
+    private long start;
 
     /**
      * Constructeur de MF
@@ -39,6 +41,7 @@ public class MF extends JFrame implements Observer{
         // Construit l'interface graphique
         build();
         echecs = eche;
+        start = System.currentTimeMillis();
     }
 
     /**
@@ -208,6 +211,8 @@ public class MF extends JFrame implements Observer{
             case 2: System.out.println("Victoire des noirs");break;
             case 3: System.out.println("Egalité");break;
         }
+        if (echecs.getVictoire() != 0)
+            System.out.println(System.currentTimeMillis() - start);
         if (echecs.getOrdre()==0) {
             // évaluation
             double eval=echecs.evaluation();

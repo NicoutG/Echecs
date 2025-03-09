@@ -265,7 +265,7 @@ public class BitBoardEchecs {
         return moves;
     }
 
-    private static long getRoque(long toursJoueur, long roiJoueur, long pieces, long speciaux, boolean couleurJoueur) {
+    private static long getRoque(long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois, long toursJoueur, long roiJoueur, long pieces, boolean couleurJoueur) {
         long moves = 0;
         long roquePetitMask, roqueGrandMask;
         long roquePetitPath, roqueGrandPath;
@@ -283,9 +283,27 @@ public class BitBoardEchecs {
         }
     
         long toursRoisStatics = (roiJoueur | toursJoueur) & speciaux;
-        if (((toursRoisStatics & roqueGrandMask) == roqueGrandMask) && (pieces & roqueGrandPath) == 0)
+
+        int[] positions = getPositions(roqueGrandMask);
+        boolean grand = true;
+        for (int pos : positions) {
+            if (IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur)) {
+                grand = false;
+                break;
+            }
+        }
+        if (grand && ((toursRoisStatics & roqueGrandMask) == roqueGrandMask) && (pieces & roqueGrandPath) == 0)
             moves |= (roiJoueur << 2);
-        if (((toursRoisStatics & roquePetitMask) == roquePetitMask) && (pieces & roquePetitPath) == 0)
+        
+        positions = getPositions(roquePetitMask);
+        boolean petit = true;
+        for (int pos : positions) {
+            if (IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur)) {
+                petit = false;
+                break;
+            }
+        }
+        if (petit && ((toursRoisStatics & roquePetitMask) == roquePetitMask) && (pieces & roquePetitPath) == 0)
             moves |= (roiJoueur >>> 2);
     
         return moves;
@@ -323,9 +341,9 @@ public class BitBoardEchecs {
         return getFouDep(pos, piecesJoueur, piecesAdversaire) | getTourDep(pos, piecesJoueur, piecesAdversaire);
     }
 
-    private static long getRoiDep(int pos, long toursJoueur, long piecesJoueur, long pieces, long speciaux, boolean couleurJoueur) {
+    private static long getRoiDep(int pos, long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois, long toursJoueur, long pieces, long piecesJoueur, boolean couleurJoueur) {
         long bitboard = toBitBoard(pos);
-        return (getRoiDep(pos) & ~piecesJoueur) | getRoque(toursJoueur, bitboard, pieces, speciaux, couleurJoueur);
+        return (getRoiDep(pos) & ~piecesJoueur) | getRoque(blancs,noirs,speciaux,pions,cavaliers,fous,tours,reines,rois,toursJoueur,bitboard,pieces,couleurJoueur);
     }
 
     //#endregion
@@ -338,13 +356,13 @@ public class BitBoardEchecs {
         return ((bitboardDep & priseEnPassant) != 0);
     }
 
-    private static boolean isRoque(int dep, long toursJoueur, long roiJoueur, long pieces, long speciaux, boolean couleurJoueur) {
-        long roque = getRoque(toursJoueur, roiJoueur, pieces, speciaux, couleurJoueur);
+    private static boolean isRoque(int dep, long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois, long toursJoueur, long roiJoueur, long pieces, boolean couleurJoueur) {
+        long roque = getRoque(blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois, toursJoueur, roiJoueur, pieces, couleurJoueur);
         long bitboardDep = toBitBoard(dep);
         return ((bitboardDep & roque) != 0);
     }
 
-    public static boolean IsEchec(long blancs, long noirs, long pions, long cavaliers, long fous, long tours, long reines, long rois, boolean couleurJoueur) {
+    public static boolean IsEchec(int posRoi, long blancs, long noirs, long pions, long cavaliers, long fous, long tours, long reines, long rois, boolean couleurJoueur) {
         long piecesJoueur;
         long piecesAdversaire;
         if (couleurJoueur) {
@@ -355,8 +373,6 @@ public class BitBoardEchecs {
             piecesJoueur = noirs;
             piecesAdversaire = blancs;
         }
-        long roiJoueur = rois & piecesJoueur;
-        int posRoi = toPosition(roiJoueur);
         
         // pris par un pion
         long prisePion = getPrisesPions(posRoi, piecesAdversaire, couleurJoueur);
@@ -404,6 +420,15 @@ public class BitBoardEchecs {
             return true;
         
         return false;
+    }
+
+    public static boolean IsEchec(long blancs, long noirs, long pions, long cavaliers, long fous, long tours, long reines, long rois, boolean couleurJoueur) {
+        long roiJoueur;
+        if (couleurJoueur)
+            roiJoueur = rois & blancs;
+        else
+            roiJoueur = rois & noirs;
+        return IsEchec(toPosition(roiJoueur), blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur);
     }
 
     //#endregion
@@ -619,7 +644,7 @@ public class BitBoardEchecs {
         else
             piecesJoueur = noirs;
 
-        if (isRoque(dep, (tours & piecesJoueur), (rois & piecesJoueur), pieces, speciaux, couleurJoueur)) {
+        if (isRoque(dep, blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois, (tours & piecesJoueur), (rois & piecesJoueur), pieces, couleurJoueur)) {
             switch(dep) {
                 case 2: {
                     toursCopy = (toursCopy | 0x1000000000000000L) & ~0x8000000000000000L;
@@ -805,7 +830,7 @@ public class BitBoardEchecs {
         else
             piecesJoueur = noirs;
         
-        long moves = getRoiDep(pos,(tours & piecesJoueur), piecesJoueur, pieces, speciaux, couleurJoueur);
+        long moves = getRoiDep(pos, blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois, (tours & piecesJoueur), pieces, piecesJoueur, couleurJoueur);
         int[] deps = getPositions(moves);
         long correctsMoves = 0;
         for (int dep : deps) {
@@ -831,6 +856,10 @@ public class BitBoardEchecs {
         if ((bitboard & rois) != 0)
             return getCorrectRoiDep(pos, blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois, couleurJoueur);
         return 0;
+    }
+
+    public static long getPrises(int pos, long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois, boolean couleurJoueur) {
+        return (blancs | noirs) & getCorrectDep(pos, blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois, couleurJoueur);
     }
 
     //#endregion

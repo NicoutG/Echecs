@@ -18,7 +18,7 @@ public class AlphaBeta extends Joueur{
     public void jouer (Echecs echecs) {
         if (echecs.getVictoire()==0) {
             begin=System.currentTimeMillis();
-            double[] res=simuler(echecs, profondeur,-9999,9999);
+            double[] res=simuler(echecs, profondeur,-999999,999999);
             if (res[1]!=-1) {
                 echecs.action((int)res[1]);
                 echecs.action((int)res[2]);
@@ -30,9 +30,9 @@ public class AlphaBeta extends Joueur{
 
     public double[] simuler (Echecs echecs, int reste, double alpha, double beta) {
         double[] res=new double [3];
-        if (reste>0 && echecs.getVictoire()==0) {
+        if (reste > 0 && echecs.getVictoire() == 0) {
             if (System.currentTimeMillis()-begin<time) {
-                ArrayList <double[]> vals=new ArrayList <> ();
+                double[] bestVal = null;
                 ArrayList <int []> depPossibles=triDepPossibles(echecs);
                 for (int i=0;i<depPossibles.size();i++) {
                     Echecs echecs2=echecs.clone();
@@ -47,27 +47,20 @@ public class AlphaBeta extends Joueur{
                         if (alpha>=res[0])
                             return res;
                         beta=Math.min(beta,res[0]);
+                        if (bestVal == null || bestVal[0] > res[0])
+                            bestVal = res;
                     }
                     else {
                         if (beta<=res[0])
                             return res;
                         alpha=Math.max(alpha,res[0]);
+                        if (bestVal == null || bestVal[0] < res[0])
+                            bestVal = res;
                     }
-                    vals.add(res);
                 }
 
                 // récupération de la meilleur ou de la pire valeur
-                if (vals.size()!=0) {
-                    res=vals.get(0);
-                    vals.remove(0);
-                    int size=vals.size();
-                    for (int i=0;i<size;i++) {
-                        if ((echecs.getTour() && vals.get(0)[0]>res[0]) || (!echecs.getTour() && vals.get(0)[0]<res[0]))
-                            res=vals.get(0);
-                        vals.remove(0);
-                    }
-                    return res;
-                }
+                return bestVal;
             }
         }
         res[0]=echecs.evaluation();
