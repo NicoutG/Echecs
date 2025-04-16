@@ -10,18 +10,20 @@ public class Echecs extends Observable {
     private int caseDep;
     private long deps;
 
-    private long blancs;
-    private long noirs;
-    private long speciaux;
-    private long pions;
-    private long cavaliers;
-    private long fous;
-    private long tours;
-    private long reines;
-    private long rois;
+    public long blancs;
+    public long noirs;
+    public long speciaux;
+    public long pions;
+    public long cavaliers;
+    public long fous;
+    public long tours;
+    public long reines;
+    public long rois;
 
     private HashMap<Long, Integer> coupsPrecedents;
     private int nbCoupsNuls;
+    private boolean enableRollBack;
+    private ArrayList<RollBack> rollBacks;
 
     public Echecs(Echecs echecs) {
         tour = echecs.tour;
@@ -65,6 +67,8 @@ public class Echecs extends Observable {
         speciaux = rois | tours;
         coupsPrecedents = new HashMap<>();
         nbCoupsNuls = 0;
+        enableRollBack = false;
+        rollBacks = null;
     }
 
     public Echecs clone() {
@@ -122,6 +126,10 @@ public class Echecs extends Observable {
 
     public boolean action (int nb) {
         if (victoire==0) {
+            if (enableRollBack) {
+                rollBacks.add(new RollBack(casePos, deps, ordre, nbCoupsNuls, blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois));
+            }
+                
             switch (ordre) {
                 case 0: {
                     long bitboard = BitBoardEchecs.toBitBoard(nb);
@@ -189,7 +197,8 @@ public class Echecs extends Observable {
 
         if (pions != afterMove[3] || BitBoardEchecs.countPieces(blancs) != BitBoardEchecs.countPieces(afterMove[0]) || BitBoardEchecs.countPieces(noirs) != BitBoardEchecs.countPieces(afterMove[1])) {
             nbCoupsNuls = -1;
-            coupsPrecedents.clear();
+            if (!enableRollBack)
+                coupsPrecedents.clear();
         }
             
         blancs = afterMove[0];
@@ -250,16 +259,6 @@ public class Echecs extends Observable {
         notifyObservers();
     }
 
-    public double evaluation() {
-        if (victoire == 0)
-            return Evaluation.evaluation(blancs, noirs, speciaux, pions, cavaliers, fous, tours, reines, rois);
-        if (victoire == 1)
-            return 1000;
-        if (victoire == 2)
-            return -1000;
-        return 0;
-    }
-
     public int[][] getPlateau() {
         int[][] plateau = new int[8][8];
         long pionsBlancs = pions & blancs;
@@ -302,11 +301,21 @@ public class Echecs extends Observable {
     }
 
     public long generatePlateau() {
-        return blancs + noirs + pions + cavaliers + fous + tours + reines + rois + speciaux;
+        long hash = 0;
+        hash ^= Long.rotateLeft(blancs, 3);
+        hash ^= Long.rotateLeft(noirs, 7);
+        hash ^= Long.rotateLeft(pions, 11);
+        hash ^= Long.rotateLeft(cavaliers, 13);
+        hash ^= Long.rotateLeft(fous, 17);
+        hash ^= Long.rotateLeft(tours, 19);
+        hash ^= Long.rotateLeft(reines, 23);
+        hash ^= Long.rotateLeft(rois, 29);
+        hash ^= Long.rotateLeft(speciaux, 31);
+        return hash;
     }
 
     private long genererHash() {
-        return generatePlateau() + (tour ? 1 : 0);
+        return generatePlateau() ^ (tour ? 0xABCD1234EF56789L : 0);
     }
 
     public double getAvancement() {
@@ -346,4 +355,95 @@ public class Echecs extends Observable {
     public boolean enPrise(int pos) {
         return BitBoardEchecs.IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, tour);
     }
+
+    public void activateRollBack() {
+        enableRollBack = true;
+        rollBacks = new ArrayList<>(20);
+    }
+
+    public void desactivateRollBack() {
+        enableRollBack = false;
+        rollBacks = null;
+    }
+
+    public boolean rollBack() {
+        if (enableRollBack && rollBacks.size() > 0) {
+            victoire = 0;
+            
+            if (ordre == 0) {
+                long hash = genererHash();
+                int nb = coupsPrecedents.get(hash);
+                if (nb == 1)
+                    coupsPrecedents.remove(hash);
+                else
+                    coupsPrecedents.replace(hash, nb - 1);
+                tour = !tour;
+            }
+            
+            RollBack rollBack = rollBacks.remove(rollBacks.size() - 1);
+            ordre = rollBack.ordre;
+            casePos = rollBack.casePos;
+            deps = rollBack.deps;
+            nbCoupsNuls = rollBack.nbCoupsNuls;
+            blancs = rollBack.blancs;
+            noirs = rollBack.noirs;
+            speciaux = rollBack.speciaux;
+            pions = rollBack.pions;
+            cavaliers = rollBack.cavaliers;
+            fous = rollBack.fous;
+            tours = rollBack.tours;
+            reines = rollBack.reines;
+            rois = rollBack.rois;
+            // if (ordre == 0 || ordre == 2) {
+            //     if (ordre == 0) {
+            //         casePos = rollBack.casePos;
+            //         nbCoupsNuls = rollBack.nbCoupsNuls;
+            //     }
+            //     blancs = rollBack.blancs;
+            //     noirs = rollBack.noirs;
+            //     speciaux = rollBack.speciaux;
+            //     pions = rollBack.pions;
+            //     cavaliers = rollBack.cavaliers;
+            //     fous = rollBack.fous;
+            //     tours = rollBack.tours;
+            //     reines = rollBack.reines;
+            //     rois = rollBack.rois;
+            // }
+
+            return true;
+        }
+        return false;
+    }
+
+    public void compare(Echecs echecs) {
+        if (tour != echecs.tour)
+            System.out.println("tour: " + tour + " contre " + echecs.tour);
+        if (victoire != echecs.victoire)
+            System.out.println("victoire: " + victoire + " contre " + echecs.victoire);
+        if (ordre != echecs.ordre)
+            System.out.println("ordre: " + ordre + " contre " + echecs.ordre);
+        if (casePos != echecs.casePos)
+            System.out.println("casePos: " + casePos + " contre " + echecs.casePos);
+        if (blancs != echecs.blancs)
+            System.out.println("blancs: " + blancs + " contre " + echecs.blancs);
+        if (noirs != echecs.noirs)
+            System.out.println("noirs: " + noirs + " contre " + echecs.noirs);
+        if (speciaux != echecs.speciaux)
+            System.out.println("speciaux: " + speciaux + " contre " + echecs.speciaux);
+        if (pions != echecs.pions)
+            System.out.println("pions: " + pions + " contre " + echecs.pions);
+        if (cavaliers != echecs.cavaliers)
+            System.out.println("cavaliers: " + cavaliers + " contre " + echecs.cavaliers);
+        if (fous != echecs.fous)
+            System.out.println("fous: " + fous + " contre " + echecs.fous);
+        if (tours != echecs.tours)
+            System.out.println("tours: " + tours + " contre " + echecs.tours);
+        if (reines != echecs.reines)
+            System.out.println("reines: " + reines + " contre " + echecs.reines);
+        if (rois != echecs.rois)
+            System.out.println("rois: " + rois + " contre " + echecs.rois);
+        if (nbCoupsNuls != echecs.nbCoupsNuls)
+            System.out.println("nbCoupsNuls: " + nbCoupsNuls + " contre " + echecs.nbCoupsNuls);
+    }
+
 }

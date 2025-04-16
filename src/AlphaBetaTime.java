@@ -26,8 +26,6 @@ public class AlphaBetaTime extends Joueur {
                     profondeur++;
                 }
             } while (restant>0);
-            
-            System.out.println("Profondeur : "+profondeurvalide);
 
             if (res!=null && res[1]!=-1) {
                 echecs.action((int)res[1]);

@@ -1,14 +1,15 @@
-public class AlphaBeta2 extends Joueur{
+public class AlphaBeta3 extends Joueur{
     private int profondeur;
     private long time;
     private long begin;
 
-    AlphaBeta2 (int prof) {
+    AlphaBeta3 (int prof) {
         profondeur=prof;
         time=100000000;
     }
 
-    AlphaBeta2 (int prof, long time) {
+    AlphaBeta3 (int prof, long time) {
+        profondeur=prof;
         profondeur=prof;
         this.time=time;
     }

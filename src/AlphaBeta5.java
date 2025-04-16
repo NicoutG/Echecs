@@ -1,14 +1,15 @@
-public class AlphaBeta2 extends Joueur{
+public class AlphaBeta5 extends Joueur{
     private int profondeur;
     private long time;
     private long begin;
 
-    AlphaBeta2 (int prof) {
+    AlphaBeta5 (int prof) {
         profondeur=prof;
         time=100000000;
     }
 
-    AlphaBeta2 (int prof, long time) {
+    AlphaBeta5 (int prof, long time) {
+        profondeur=prof;
         profondeur=prof;
         this.time=time;
     }
@@ -16,71 +17,80 @@ public class AlphaBeta2 extends Joueur{
     public void jouer (Echecs echecs) {
         if (echecs.getVictoire()==0) {
             begin=System.currentTimeMillis();
-            Parcours parcours = simuler(echecs, profondeur, -Evaluation.MAXVAL, Evaluation.MAXVAL,null);
-            if (parcours != null && parcours.actions.size() > 0) {
+            Echecs echecsClone = echecs.clone();
+            echecsClone.activateRollBack();
+            Parcours2 parcours = simuler(echecsClone, profondeur, 0, -Evaluation.MAXVAL, Evaluation.MAXVAL,null);
+            if (parcours != null && parcours.actions.length> 0) {
+                int i = 0;
                 do {
-                    echecs.action(parcours.actions.remove(0));
-                }while(echecs.getOrdre() > 0 && parcours.actions.size() > 0);
+                    echecs.action(parcours.actions[i]);
+                    i++;
+                }while(echecs.getOrdre() > 0 && i < parcours.actions.length);
             }
         }
     }
 
-    public Parcours simuler (Echecs echecs, int reste, double alpha, double beta, Parcours parcoursPrecedent) {
-        Parcours parcours = new Parcours();
+    public Parcours2 simuler (Echecs echecs, int reste, int nbCoups, double alpha, double beta, Parcours2 parcoursPrecedent) {
+        Parcours2 parcours;
         if (reste > 0 && echecs.getVictoire() == 0) {
             if (System.currentTimeMillis() - begin < time) {
                 int[] actionsPossibles;
-                if (parcoursPrecedent != null && parcoursPrecedent.actions.size() > 0) {
-                    int bestAction = parcoursPrecedent.actions.remove(0);
+                if (parcoursPrecedent != null && parcoursPrecedent.actions.length > nbCoups) {
+                    int bestAction = parcoursPrecedent.actions[nbCoups];
                     actionsPossibles = triActionsPossibles(echecs,bestAction);
                 }
                 else {
                     actionsPossibles = triActionsPossibles(echecs,null);
                 }
-                if (actionsPossibles.length <= 0)
+                if (actionsPossibles.length <= 0) {
                     return null;
-                Parcours bestParcours = null;
+                }
+                boolean tour = echecs.getTour();
+                Parcours2 bestParcours = null;
+
                 for (int i = 0; i < actionsPossibles.length; i++) {
                     int action = actionsPossibles[i];
-                    Echecs echecs2=echecs.clone();
-                    echecs2.action(action);
+                    echecs.action(action);
 
-                    if (echecs2.getOrdre() == 0)
-                        parcours = simuler(echecs2, reste - 1, alpha, beta, parcoursPrecedent);
+                    if (echecs.getOrdre() == 0) {
+                        parcours = simuler(echecs, reste - 1, nbCoups + 1, alpha, beta, parcoursPrecedent);
+                    }
                     else
-                        parcours = simuler(echecs2, reste, alpha, beta, parcoursPrecedent);
+                        parcours = simuler(echecs, reste, nbCoups + 1, alpha, beta, parcoursPrecedent);
                     
                     if (parcours != null) {
-                        if (!echecs.getTour()) {
+                        if (!tour) {
                             if (alpha >= parcours.evaluation) {
-                                parcours.actions.add(0,action);
+                                parcours.actions[nbCoups] = action;
+                                echecs.rollBack();
                                 return parcours;
                             }
                             beta = Math.min(beta, parcours.evaluation);
                             if (bestParcours == null || bestParcours.evaluation > parcours.evaluation) {
-                                parcours.actions.add(0,action);
+                                parcours.actions[nbCoups] = action;
                                 bestParcours = parcours;
                             }
                         }
                         else {
                             if (beta <= parcours.evaluation) {
-                                parcours.actions.add(0,action);
+                                parcours.actions[nbCoups] = action;
+                                echecs.rollBack();
                                 return parcours;
                             }
                             alpha = Math.max(alpha, parcours.evaluation);
                             if (bestParcours == null || bestParcours.evaluation < parcours.evaluation) {
-                                parcours.actions.add(0,action);
+                                parcours.actions[nbCoups] = action;
                                 bestParcours = parcours;
                             }
                         }
                     }
+                    echecs.rollBack();
                 }
-
                 return bestParcours;
             }
             return null;
         }
-        parcours = new Parcours();
+        parcours = new Parcours2(nbCoups);
         parcours.evaluation = Evaluation.evaluation(echecs);
         return parcours;
     }

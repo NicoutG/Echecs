@@ -5,7 +5,6 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Observable;
 import javax.swing.ImageIcon;
@@ -28,7 +27,7 @@ public class MF extends JFrame implements Observer{
 
     private HashMap<String, ImageIcon> images = null;
 
-    private Joueur joueur1 = new AlphaBetaTime2(2000);
+    private Joueur joueur1 = new AlphaBetaTime5(10000);
 
     private Joueur joueur2 = new Humain();
 
@@ -131,7 +130,7 @@ public class MF extends JFrame implements Observer{
             for (int j=0;j<8;j++) {
                 tab[i][j].setIcon(null);
                 if ((i+j)%2==1)
-                    tab[i][j].setBackground(Color.DARK_GRAY);
+                    tab[i][j].setBackground(Color.GRAY);
                 else
                     tab[i][j].setBackground(Color.WHITE);
             }
@@ -210,7 +209,7 @@ public class MF extends JFrame implements Observer{
         }
         if (echecs.getOrdre()==0) {
             // évaluation
-            double eval=echecs.evaluation();
+            double eval = Evaluation.evaluation(echecs);
             double seuil = 30;
             if (Math.abs(eval) <= seuil)
                 System.out.println("Evaluation : "+eval+" (égalité)");
@@ -220,10 +219,12 @@ public class MF extends JFrame implements Observer{
                 else
                     System.out.println("Evaluation : "+eval+" (avantage Noir)");
             
-            if (echecs.getTour())
-                joueur1.jouer(echecs);
-            else
-                joueur2.jouer(echecs);
+            new Thread(() -> {
+                if (echecs.getTour())
+                    joueur1.jouer(echecs);
+                else
+                    joueur2.jouer(echecs);
+            }).start();
         }
     }
 }

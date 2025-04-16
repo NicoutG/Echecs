@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class Parcours {
     public double evaluation;
-    public ArrayList<Integer> actions = new ArrayList<>();
+    public ArrayList<Integer> actions = new ArrayList<>(20);
 
     public Parcours clone() {
         Parcours parcours = new Parcours();

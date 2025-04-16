@@ -81,9 +81,10 @@ public class Noeud {
         for (int i=0;i<size();i++) {
             double uct=0;
             if (noeuds[i]==null)
-                uct=99999999999999.0;
+                uct=uct(c,0,1,n);
             else
                 uct=uct(c,noeuds[i].getW(),noeuds[i].getN(),n);
+            // System.out.println("Null: " + (noeuds[i]==null) + " uct : "+uct);
             if (uct>bestUct) {
                 bestUct=uct;
                 bestNoeud=i;
@@ -113,7 +114,7 @@ public class Noeud {
 
     private int jouer (Echecs echecs) {
         if (echecs.getVictoire()==0) {
-            jouerCoupSemiAleatoire(echecs);
+            jouerCoupMinMax(echecs);
             return jouer(echecs);
         }
         else {
@@ -157,7 +158,7 @@ public class Noeud {
         echecs.action(deps.get(choix)[0]);
         echecs.action(deps.get(choix)[1]);
         if (echecs.getOrdre()==2)
-                echecs.action(67);
+            echecs.action(67);
     }
 
     private void jouerCoupMinMax (Echecs echecs) {
@@ -169,8 +170,8 @@ public class Noeud {
             Echecs echecs2=echecs.clone();
             echecs2.action(deps.get(i)[0]);
             echecs2.action(deps.get(i)[1]);
-            double evaluation=echecs2.evaluation();
-            if (evaluation>=1000 || evaluation<=-1000) {
+            double evaluation=Evaluation.evaluation(echecs2);
+            if (evaluation>=Evaluation.MAXVAL || evaluation<=-Evaluation.MAXVAL) {
                 echecs.action(deps.get(i)[0]);
                 echecs.action(deps.get(i)[1]);
                 if (echecs.getOrdre()==2)

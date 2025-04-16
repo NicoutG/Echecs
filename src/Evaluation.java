@@ -7,12 +7,14 @@ public class Evaluation {
     private static double valReine=90;
     private static double valRoi = 100;
 
+    public static final double MAXVAL = 1000;
+
     private static double[] pionsTableDeb =
         {  0,   0,   0,   0,   0,   0,   0,   0 ,
           50,  50,  50,  50,  50,  50,  50,  50 ,
           10,  10,  20,  30,  30,  20,  10,  10 ,
            5,   5,  10,  25,  25,  10,   5,   5 ,
-           0,   0,   0,  20,  20,   0,   0,   0 ,
+           0,   0,   0,  20,  35,   0,   0,   0 ,
            5,  -5, -10,   0,   0, -10,  -5,   5 ,
            5,  10,  10, -20, -20,  10,  10,   5 ,
            0,   0,   0,   0,   0,   0,   0,   0 };
@@ -127,6 +129,17 @@ public class Evaluation {
           -30, -30,   0,   0,   0,   0, -30, -30 ,
           -50, -30, -30, -30, -30, -30, -30, -50 };
 
+    public static double evaluation (Echecs echecs) {
+        int victoire = echecs.getVictoire();
+        if (victoire == 0)
+            return Evaluation.evaluation(echecs.blancs, echecs.noirs, echecs.speciaux, echecs.pions, echecs.cavaliers, echecs.fous, echecs.tours, echecs.reines, echecs.rois);
+        if (victoire == 1)
+            return MAXVAL;
+        if (victoire == 2)
+            return -MAXVAL;
+        return 0;
+    }
+
     public static double evaluation (long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois) {
         long pionsBlancs = pions & blancs;
         long cavaliersBlancs = cavaliers & blancs;
@@ -154,7 +167,35 @@ public class Evaluation {
 
         val += evaluationRoisFin(roisBlancs, roisNoirs, avancement, (materielBlancs > materielNoirs));
 
+        val += evaluationRoque(speciaux);
+
         return val;
+    }
+
+    public static double evaluationRoque(long speciaux) {
+        double evaluation = 0;
+        long roiBlanc = 0xFF00000000000008L;
+        if ((speciaux & roiBlanc) != 0) {
+            long toursBlanc = 0xFF00000000000081L;
+            long compar = speciaux & toursBlanc;
+            if (compar == 0xFF00000000000080L || compar == 0xFF00000000000001L) 
+                evaluation += 10;
+            else 
+                if (compar == toursBlanc)
+                    evaluation += 15;
+        }
+        long roiNoir = 0xFF08000000000000L;
+        if ((speciaux & roiNoir) != 0) {
+            long toursNoir = 0xFF18000000000000L;
+            long compar = speciaux & toursNoir;
+            if (compar == 0xFF10000000000000L || compar == 0xFF08000000000000L) 
+                evaluation -= 10;
+            else 
+                if (compar == toursNoir)
+                    evaluation -= 15;
+        }
+        
+        return evaluation;
     }
 
     public static double evaluationMaterielDepart() {
@@ -280,35 +321,6 @@ public class Evaluation {
         double value = 0;
         switch (echecs.getOrdre()) {
             case 0: {
-                switch (echecs.getPiece(action)) {
-                    case 1: value = 1;break;
-                    case 2: value = 2;break;
-                    case 3: value = 3;break;
-                    case 4: value = 4;break;
-                    case 5: value = 5;break;
-                    case 6: value = 2;break;
-                }
-            }break;
-            case 1: {
-                value  = Evaluation.evaluationCoup(echecs.getCasePos(), action, echecs.getPlateau());
-            }break;
-            case 2: {
-                switch (action) {
-                    case 64: value = 3;break;
-                    case 65: value = 1;break;
-                    case 66: value = 2;break;
-                    case 67: value = 4;break;
-                }
-            }break;
-        }
-        return value;
-    }
-
-    public static double evaluationAction2(Echecs echecs, int action) {
-        double value = 0;
-        switch (echecs.getOrdre()) {
-            case 0: {
-                double avancement = echecs.getAvancement();
                 switch (echecs.getPiece(action)) {
                     case 1: value = 1;break;
                     case 2: value = 2;break;

@@ -18,7 +18,7 @@ public class AlphaBeta extends Joueur{
     public void jouer (Echecs echecs) {
         if (echecs.getVictoire()==0) {
             begin=System.currentTimeMillis();
-            double[] res=simuler(echecs, profondeur,-999999,999999);
+            double[] res=simuler(echecs, profondeur,-Evaluation.MAXVAL,Evaluation.MAXVAL);
             if (res[1]!=-1) {
                 echecs.action((int)res[1]);
                 echecs.action((int)res[2]);
@@ -63,7 +63,7 @@ public class AlphaBeta extends Joueur{
                 return bestVal;
             }
         }
-        res[0]=echecs.evaluation();
+        res[0]=Evaluation.evaluation(echecs);
         res[1]=-1;
         res[2]=-1;
         return res;

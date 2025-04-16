@@ -50,7 +50,7 @@ public class MinMax extends Joueur{
                 return res;
             }
         }
-        res[0]=echecs.evaluation();
+        res[0]=Evaluation.evaluation(echecs);
         res[1]=-1;
         res[2]=-1;
         return res;

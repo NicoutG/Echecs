@@ -1,8 +1,7 @@
-import java.util.ArrayList;
-
 public class BitBoardEchecs {
     private static final long A_FILE = 0x0101010101010101L;
     private static final long H_FILE = 0x8080808080808080L;
+
 
     public static long toBitBoard(int pos) {
         return 1L << (63 - pos);
@@ -13,15 +12,16 @@ public class BitBoardEchecs {
     }
 
     public static int[] getPositions(long bitboard) {
-        ArrayList<Integer> positions = new ArrayList<>();
-
+        int[] positions = new int[Long.bitCount(bitboard)];
+        int index = 0;
+    
         while (bitboard != 0) {
-            int pos = Long.numberOfLeadingZeros(bitboard);
-            positions.add(pos);
-            bitboard &= ~(1L << (63 - pos));
+            int pos = Long.numberOfTrailingZeros(bitboard);
+            positions[index++] = 63 - pos;
+            bitboard &= ~(1L << pos); 
         }
-
-        return positions.stream().mapToInt(i -> i).toArray();
+    
+        return positions;
     }
     
     public static int countPieces(long bitboard) {
@@ -267,44 +267,60 @@ public class BitBoardEchecs {
 
     private static long getRoque(long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois, long toursJoueur, long roiJoueur, long pieces, boolean couleurJoueur) {
         long moves = 0;
+
         long roquePetitMask, roqueGrandMask;
-        long roquePetitPath, roqueGrandPath;
+        long roquePetitPath, roqueGrandPath, roqueGrandRoiPath;
         
         if (couleurJoueur) {
             roquePetitMask = 0x0000000000000009L;
             roqueGrandMask = 0x0000000000000088L;
             roquePetitPath = 0x0000000000000006L;
             roqueGrandPath = 0x0000000000000070L;
+            roqueGrandRoiPath = 0x0000000000000060L;
         } else {
             roquePetitMask = 0x0900000000000000L;
             roqueGrandMask = 0x8800000000000000L;
             roquePetitPath = 0x0600000000000000L;
             roqueGrandPath = 0x7000000000000000L;
+            roqueGrandRoiPath = 0x3000000000000000L;
         }
     
         long toursRoisStatics = (roiJoueur | toursJoueur) & speciaux;
 
-        int[] positions = getPositions(roqueGrandMask);
-        boolean grand = true;
-        for (int pos : positions) {
-            if (IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur)) {
-                grand = false;
-                break;
-            }
-        }
-        if (grand && ((toursRoisStatics & roqueGrandMask) == roqueGrandMask) && (pieces & roqueGrandPath) == 0)
-            moves |= (roiJoueur << 2);
+        boolean possibleGrandRoque = (((toursRoisStatics & roqueGrandMask) == roqueGrandMask) && (pieces & roqueGrandPath) == 0);
+        boolean possiblePetitRoque = (((toursRoisStatics & roquePetitMask) == roquePetitMask) && (pieces & roquePetitPath) == 0);
         
-        positions = getPositions(roquePetitMask);
-        boolean petit = true;
-        for (int pos : positions) {
-            if (IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur)) {
-                petit = false;
-                break;
+        if (!possibleGrandRoque && !possiblePetitRoque)
+            return moves;
+
+        if (IsEchec(toPosition(roiJoueur), blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur))
+            return moves;
+
+        if (possibleGrandRoque) {
+            int[] positions = getPositions(roqueGrandRoiPath);
+            boolean grand = true;
+            for (int pos : positions) {
+                if (IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur)) {
+                    grand = false;
+                    break;
+                }
             }
+            if (grand)
+                moves |= (roiJoueur << 2);
         }
-        if (petit && ((toursRoisStatics & roquePetitMask) == roquePetitMask) && (pieces & roquePetitPath) == 0)
-            moves |= (roiJoueur >>> 2);
+        
+        if (possiblePetitRoque) {
+            int[] positions = getPositions(roquePetitPath);
+            boolean petit = true;
+            for (int pos : positions) {
+                if (IsEchec(pos, blancs, noirs, pions, cavaliers, fous, tours, reines, rois, couleurJoueur)) {
+                    petit = false;
+                    break;
+                }
+            }
+            if (petit)
+                moves |= (roiJoueur >>> 2);
+        }
     
         return moves;
     }

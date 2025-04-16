@@ -1,7 +1,7 @@
-public class AlphaBetaTime2 extends Joueur {
+public class AlphaBetaTime3 extends Joueur {
     private long time;
 
-    AlphaBetaTime2 (long time) {
+    AlphaBetaTime3 (long time) {
         this.time=time;
     }
 
@@ -10,13 +10,13 @@ public class AlphaBetaTime2 extends Joueur {
             long begin=System.currentTimeMillis();
             long end=begin+time;
             int profondeur=1;
-            AlphaBeta2 alphaBeta=null;
+            AlphaBeta3 alphaBeta=null;
             Parcours res = null;
             long restant = time;
             int profondeurvalide = 0;
             Parcours resTemp = null;
             do {
-                alphaBeta = new AlphaBeta2(profondeur,restant);
+                alphaBeta = new AlphaBeta3(profondeur,restant);
                 Echecs echecs2 = echecs.clone();
                 alphaBeta.setBegin(System.currentTimeMillis());
                 resTemp = alphaBeta.simuler(echecs2, profondeur,-999999,999999, resTemp);
