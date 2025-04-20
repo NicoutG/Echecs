@@ -22,7 +22,7 @@ public class AlphaBetaLMRTime extends Joueur {
                 Echecs echecs2 = echecs.clone();
                 echecs2.activateRollBack();
                 alphaBeta.setBegin(System.currentTimeMillis());
-                resTemp = alphaBeta.simuler(echecs2, profondeur, 0,-999999,999999, resTemp);
+                resTemp = alphaBeta.simuler(echecs2, profondeur, 0,-Evaluation.MAXVAL,Evaluation.MAXVAL, resTemp);
                 restant = end - System.currentTimeMillis();
                 if (restant > 0) {
                     res = resTemp.clone();

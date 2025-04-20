@@ -1,12 +1,13 @@
-public class AlphaBetaTime5 extends Joueur {
+public class AlphaBetaTime5Red extends Joueur {
     private long time;
 
-    AlphaBetaTime5 (long time) {
+    AlphaBetaTime5Red (long time) {
         this.time=time;
     }
 
     public void jouer (Echecs echecs) {
         if (echecs.getVictoire()==0) {
+            double window = 200;
             long begin=System.currentTimeMillis();
             long end=begin+time;
             int profondeur=1;
@@ -22,7 +23,10 @@ public class AlphaBetaTime5 extends Joueur {
                 Echecs echecs2 = echecs.clone();
                 echecs2.activateRollBack();
                 alphaBeta.setBegin(System.currentTimeMillis());
-                resTemp = alphaBeta.simuler(echecs2, profondeur, 0,-Evaluation.MAXVAL,Evaluation.MAXVAL, resTemp);
+                if (resTemp == null)
+                    resTemp = alphaBeta.simuler(echecs2, profondeur, 0,-Evaluation.MAXVAL,Evaluation.MAXVAL, resTemp);
+                else
+                    resTemp = alphaBeta.simuler(echecs2, profondeur, 0,Math.max(-Evaluation.MAXVAL, resTemp.evaluation - window),Math.min(Evaluation.MAXVAL, resTemp.evaluation + window), resTemp);
                 restant = end - System.currentTimeMillis();
                 if (restant > 0) {
                     res = resTemp.clone();
