@@ -212,7 +212,7 @@ public class Echecs extends Observable {
         rois = afterMove[8];
     }
 
-    private void nouveauTour () {   
+    private void nouveauTour () {
         ordre = 0;
         tour = !tour;
 
@@ -257,6 +257,60 @@ public class Echecs extends Observable {
     public void maj () {
         setChanged();
         notifyObservers();
+    }
+
+    public void loadFEN(String fen) {
+        blancs = noirs = pions = cavaliers = fous = tours = reines = rois = speciaux = 0;
+    
+        String[] parts = fen.split(" ");
+        String[] rows = parts[0].split("/");
+    
+        for (int i = 0; i < 8; i++) {
+            String row = rows[i];
+            int col = 0;
+            for (char c : row.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    col += c - '0';
+                } else {
+                    int pos = (7 - i) * 8 + (7 - col);
+                    long bit = 1L << pos;
+                    switch (c) {
+                        case 'P': blancs |= bit; pions |= bit; break;
+                        case 'N': blancs |= bit; cavaliers |= bit; break;
+                        case 'B': blancs |= bit; fous |= bit; break;
+                        case 'R': blancs |= bit; tours |= bit; break;
+                        case 'Q': blancs |= bit; reines |= bit; break;
+                        case 'K': blancs |= bit; rois |= bit; break;
+                        case 'p': noirs |= bit; pions |= bit; break;
+                        case 'n': noirs |= bit; cavaliers |= bit; break;
+                        case 'b': noirs |= bit; fous |= bit; break;
+                        case 'r': noirs |= bit; tours |= bit; break;
+                        case 'q': noirs |= bit; reines |= bit; break;
+                        case 'k': noirs |= bit; rois |= bit; break;
+                    }
+                    col++;
+                }
+            }
+        }
+    
+        tour = parts[1].equals("w");
+    
+        if(parts[2].contains("K"))
+            speciaux |= 0x0000000000000009L;
+        if(parts[2].contains("Q"))
+            speciaux |= 0x0000000000000088L;
+        if(parts[2].contains("k"))
+            speciaux |= 0x0900000000000000L;
+        if(parts[2].contains("q"))
+            speciaux |= 0x8800000000000000L;
+    
+        if (!parts[3].equals("-")) {
+            int casePassant =  8 * (parts[3].charAt(1) - '1') + 7 - (parts[3].charAt(0) - 'a');
+            int pionPassant = tour ? casePassant - 8 : casePassant + 8;
+            speciaux |= 1 << pionPassant;
+        }
+    
+        nbCoupsNuls = Integer.parseInt(parts[4]);
     }
 
     public int[][] getPlateau() {

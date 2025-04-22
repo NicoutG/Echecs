@@ -241,7 +241,7 @@ public class BitBoardEchecs {
 
     private static long getPriseEnPassant(int pos, long pionsAdversaire, long speciaux, boolean couleurJoueur) {
         if ((couleurJoueur && (pos < 24 || 32 <= pos)) || (!couleurJoueur && (pos < 32 || 40 <= pos)))
-                return 0;
+            return 0;
         
         long pionsSpeciaux = pionsAdversaire & speciaux;
         if (pionsSpeciaux == 0)
@@ -265,7 +265,7 @@ public class BitBoardEchecs {
         return moves;
     }
 
-    private static long getRoque(long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois, long toursJoueur, long roiJoueur, long pieces, boolean couleurJoueur) {
+    public static long getRoque(long blancs, long noirs, long speciaux, long pions, long cavaliers, long fous, long tours, long reines, long rois, long toursJoueur, long roiJoueur, long pieces, boolean couleurJoueur) {
         long moves = 0;
 
         long roquePetitMask, roqueGrandMask;
